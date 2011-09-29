@@ -1,3 +1,4 @@
+====================
 Installation and use
 ====================
 
@@ -8,4 +9,6 @@ and Chrome will do the rest.
 
 When you have text selected in Chrome, or when you're over a link or an
 image, the right-click context menu will give you the option of jumping to
-the relevant thing (URL, selected text) in Fluidinfo.
+the relevant thing (URL, selected text) in Fluidinfo. You can also click on
+the 'fi' icon in the location bar to jump to the object for the URL of the
+current page.

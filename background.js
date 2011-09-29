@@ -1,3 +1,35 @@
+var base = 'http://new.fluidinfo.com/about/';
+
+chrome.tabs.onSelectionChanged.addListener(
+  function(tabId) {
+    chrome.pageAction.show(tabId);
+    }
+);
+
+chrome.tabs.onUpdated.addListener(
+  function(tabId) {
+    chrome.pageAction.show(tabId);
+    }
+);
+
+chrome.tabs.getSelected(
+  null,
+  function(tab) {
+    chrome.pageAction.show(tab.id);
+    }
+);
+
+// Called when the user clicks on the page action.
+chrome.pageAction.onClicked.addListener(
+  function(tab) {
+    chrome.tabs.create({
+      url: base + encodeURIComponent(tab.url),
+      index: tab.index + 1
+    });
+  }
+);
+
+
 function getClickHandlerNewTab() {
   return function(info, tab){
     var about = 'fluidinfo.com';
@@ -9,7 +41,7 @@ function getClickHandlerNewTab() {
       about = info.srcUrl;
     };
     chrome.tabs.create({
-      url: 'http://new.fluidinfo.com/about/' + encodeURIComponent(about),
+      url: base + encodeURIComponent(about),
       index: tab.index + 1
     });
   };
@@ -32,7 +64,7 @@ function getClickHandlerRedirect() {
  return function(info, tab) {
  chrome.tabs.update(
  tab.id,
- { url: 'http://new.fluidinfo.com/about/' + encodeURIComponent(info.selectionText) }
+ { url: base + encodeURIComponent(info.selectionText) }
  );
  };
 };
