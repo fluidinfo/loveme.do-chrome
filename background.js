@@ -1,25 +1,27 @@
 var base = 'http://new.fluidinfo.com/about/';
+var product = 'Fluidinfo Thing Engine';
+
+// --------------------------- Page action --------------------------
 
 chrome.tabs.onSelectionChanged.addListener(
   function(tabId) {
     chrome.pageAction.show(tabId);
-    }
+  }
 );
 
 chrome.tabs.onUpdated.addListener(
   function(tabId) {
     chrome.pageAction.show(tabId);
-    }
+  }
 );
 
 chrome.tabs.getSelected(
   null,
   function(tab) {
     chrome.pageAction.show(tab.id);
-    }
+  }
 );
 
-// Called when the user clicks on the page action.
 chrome.pageAction.onClicked.addListener(
   function(tab) {
     chrome.tabs.create({
@@ -29,15 +31,52 @@ chrome.pageAction.onClicked.addListener(
   }
 );
 
+// --------------------------- Selection, Link, Page --------------------------
 
-function getClickHandlerNewTab() {
+function getClickHandlerSelectionLinkOrPage() {
   return function(info, tab){
     var about = 'fluidinfo.com';
     if (info.selectionText){
       about = info.selectionText;
     } else if (info.linkUrl){
       about = info.linkUrl;
-    } else if (info.srcUrl){
+    } else if (info.pageUrl){
+      about = info.pageUrl;
+    };
+    chrome.tabs.create({
+      url: base + encodeURIComponent(about),
+      index: tab.index + 1
+    });
+  };
+};
+
+chrome.contextMenus.create({
+    'title' : 'View page URL in ' + product,
+    'type' : 'normal',
+    'contexts' : ['page'],
+    'onclick' : getClickHandlerSelectionLinkOrPage()
+});
+
+chrome.contextMenus.create({
+    'title' : 'View selected text in ' + product,
+    'type' : 'normal',
+    'contexts' : ['selection'],
+    'onclick' : getClickHandlerSelectionLinkOrPage()
+});
+
+chrome.contextMenus.create({
+    'title' : 'View link URL in ' + product,
+    'type' : 'normal',
+    'contexts' : ['link'],
+    'onclick' : getClickHandlerSelectionLinkOrPage()
+});
+
+// --------------------------- Images --------------------------
+
+function getClickHandlerImage() {
+  return function(info, tab){
+    var about = 'fluidinfo.com';
+    if (info.srcUrl){
       about = info.srcUrl;
     };
     chrome.tabs.create({
@@ -47,13 +86,37 @@ function getClickHandlerNewTab() {
   };
 };
 
-// A context menu item for viewing the selection in Fluidinfo in a new tab.
 chrome.contextMenus.create({
-    'title' : 'View in Fluidinfo Thing Engine',
+    'title' : 'View image URL in ' + product,
     'type' : 'normal',
-    'contexts' : ['all'],
-    'onclick' : getClickHandlerNewTab()
+    'contexts' : ['image'],
+    'onclick' : getClickHandlerImage()
 });
+
+// --------------------------- Frames --------------------------
+
+function getClickHandlerFrame() {
+  return function(info, tab){
+    var about = 'fluidinfo.com';
+    if (info.frameUrl){
+      about = info.frameUrl;
+    };
+    chrome.tabs.create({
+      url: base + encodeURIComponent(about),
+      index: tab.index + 1
+    });
+  };
+};
+
+chrome.contextMenus.create({
+    'title' : 'View frame URL in ' + product,
+    'type' : 'normal',
+    'contexts' : ['frame'],
+    'onclick' : getClickHandlerFrame()
+});
+
+
+// --------------------------- Open in existing tab -------------------------
 
 /*
  * Let's put the functionality to use the existing tab into the user's
