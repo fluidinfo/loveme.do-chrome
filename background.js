@@ -1,5 +1,6 @@
 var base = 'http://new.fluidinfo.com/about/';
-var product = 'Fluidinfo Thing Engine';
+var product = 'Fluidinfo';
+var defaultAbout = 'fluidinfo';
 
 // --------------------------- Page action --------------------------
 
@@ -31,85 +32,110 @@ chrome.pageAction.onClicked.addListener(
   }
 );
 
-// --------------------------- Selection, Link, Page --------------------------
+// ----------------- Utility functions for context menus -----------------
 
-function getClickHandlerSelectionLinkOrPage() {
+function openNewTab(about, info, tab){
+  /*
+   * Create a new tab with the object browser looking at the given about value.
+   */
+  chrome.tabs.create({
+    url: makeURL(about === undefined ? defaultAbout : about, info),
+    index: tab.index + 1
+  });
+}
+
+function makeURL(about, info){
+  /*
+   * Generate an object browser URL given an about value and an info
+   * object containing information about the user event.
+   */
+  var fragment = refererFragment(info);
+  if (fragment === ''){
+    return base + encodeURIComponent(about);
+  }
+  else {
+    return base + encodeURIComponent(about) + '?' + fragment;
+  }
+}
+
+function refererFragment(info){
+  /*
+   * A utility function to produce a url=xxx refering page URL fragment for a
+   * request to the object browser.
+   */
+  return info.pageUrl ? 'url=' + encodeURIComponent(info.pageUrl) : '';
+}
+
+// --------------------------- Selection --------------------------
+
+function getClickHandlerSelection() {
   return function(info, tab){
-    var about = 'fluidinfo.com';
-    if (info.selectionText){
-      about = info.selectionText;
-    } else if (info.linkUrl){
-      about = info.linkUrl;
-    } else if (info.pageUrl){
-      about = info.pageUrl;
-    };
-    chrome.tabs.create({
-      url: base + encodeURIComponent(about),
-      index: tab.index + 1
-    });
+    openNewTab(info.selectionText, info, tab);
   };
-};
+}
 
 chrome.contextMenus.create({
-    'title' : 'View page URL in ' + product,
-    'type' : 'normal',
-    'contexts' : ['page'],
-    'onclick' : getClickHandlerSelectionLinkOrPage()
-});
-
-chrome.contextMenus.create({
-    'title' : 'View selected text in ' + product,
+    'title' : product + ' for "%s"',
     'type' : 'normal',
     'contexts' : ['selection'],
-    'onclick' : getClickHandlerSelectionLinkOrPage()
+    'onclick' : getClickHandlerSelection()
 });
+
+// --------------------------- Page --------------------------
+
+function getClickHandlerPage() {
+  return function(info, tab){
+    openNewTab(info.pageUrl, info, tab);
+  };
+}
 
 chrome.contextMenus.create({
-    'title' : 'View link URL in ' + product,
+    'title' : product + ' for this page',
     'type' : 'normal',
-    'contexts' : ['link'],
-    'onclick' : getClickHandlerSelectionLinkOrPage()
+    'contexts' : ['page'],
+    'onclick' : getClickHandlerPage()
 });
 
-// --------------------------- Images --------------------------
+// --------------------------- Link --------------------------
+
+function getClickHandlerLink() {
+  return function(info, tab){
+    openNewTab(info.linkUrl, info, tab);
+  };
+}
+
+chrome.contextMenus.create({
+    'title' : product + ' for this link',
+    'type' : 'normal',
+    'contexts' : ['link'],
+    'onclick' : getClickHandlerLink()
+});
+
+// --------------------------- Image --------------------------
 
 function getClickHandlerImage() {
   return function(info, tab){
-    var about = 'fluidinfo.com';
-    if (info.srcUrl){
-      about = info.srcUrl;
-    };
-    chrome.tabs.create({
-      url: base + encodeURIComponent(about),
-      index: tab.index + 1
-    });
+    openNewTab(info.srcUrl, info, tab);
   };
-};
+}
 
 chrome.contextMenus.create({
-    'title' : 'View image URL in ' + product,
+    'title' : product + ' for this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : getClickHandlerImage()
 });
 
-// --------------------------- Frames --------------------------
+// --------------------------- Frame --------------------------
 
 function getClickHandlerFrame() {
   return function(info, tab){
-    var about = 'fluidinfo.com';
-    if (info.frameUrl){
-      about = info.frameUrl;
-    };
-    chrome.tabs.create({
-      url: base + encodeURIComponent(about),
-      index: tab.index + 1
-    });
+    openNewTab(info.frameUrl, info, tab);
   };
-};
+}
 
 chrome.contextMenus.create({
-    'title' : 'View frame URL in ' + product,
+    'title' : product + ' for this frame',
     'type' : 'normal',
     'contexts' : ['frame'],
     'onclick' : getClickHandlerFrame()
@@ -126,11 +152,12 @@ chrome.contextMenus.create({
 function getClickHandlerRedirect() {
  return function(info, tab) {
  chrome.tabs.update(
- tab.id,
- { url: base + encodeURIComponent(info.selectionText) }
- );
- };
-};
+   tab.id,
+   {
+     url: makeURL(about, info)
+   });
+  };
+}
 
 // A context menu item for viewing the selection in Fluidinfo in the same tab.
 chrome.contextMenus.create({
