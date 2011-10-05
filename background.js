@@ -1,5 +1,5 @@
 var base = 'http://new.fluidinfo.com/about/';
-var product = 'Fluidinfo Thing Engine';
+var product = 'Fluidinfo';
 var defaultAbout = 'fluidinfo';
 
 // --------------------------- Page action --------------------------
@@ -34,7 +34,7 @@ chrome.pageAction.onClicked.addListener(
 
 // ----------------- Utility functions for context menus -----------------
 
-function makeTab(about, info, tab){
+function openNewTab(about, info, tab){
   /*
    * Create a new tab with the object browser looking at the given about value.
    */
@@ -49,38 +49,33 @@ function makeURL(about, info){
    * Generate an object browser URL given an about value and an info
    * object containing information about the user event.
    */
-  var ref = referer(info);
-  if (ref === undefined){
+  var fragment = refererFragment(info);
+  if (fragment === ''){
     return base + encodeURIComponent(about);
   }
   else {
-    return base + encodeURIComponent(about) + '?' + ref;
+    return base + encodeURIComponent(about) + '?' + fragment;
   }
 }
 
-function referer(info){
+function refererFragment(info){
   /*
    * A utility function to produce a url=xxx refering page URL fragment for a
    * request to the object browser.
    */
-    if (info.pageUrl){
-      return 'url=' + encodeURIComponent(info.pageUrl);
-    }
-    else {
-      return '';
-    }
+  return info.pageUrl ? 'url=' + encodeURIComponent(info.pageUrl) : '';
 }
 
 // --------------------------- Selection --------------------------
 
 function getClickHandlerSelection() {
   return function(info, tab){
-    makeTab(info.selectionText, info, tab);
+    openNewTab(info.selectionText, info, tab);
   };
 }
 
 chrome.contextMenus.create({
-    'title' : 'View selected text in ' + product,
+    'title' : product + ' for "%s"',
     'type' : 'normal',
     'contexts' : ['selection'],
     'onclick' : getClickHandlerSelection()
@@ -90,12 +85,12 @@ chrome.contextMenus.create({
 
 function getClickHandlerPage() {
   return function(info, tab){
-    makeTab(info.pageUrl, info, tab);
+    openNewTab(info.pageUrl, info, tab);
   };
 }
 
 chrome.contextMenus.create({
-    'title' : 'View page URL in ' + product,
+    'title' : product + ' for this page',
     'type' : 'normal',
     'contexts' : ['page'],
     'onclick' : getClickHandlerPage()
@@ -105,12 +100,12 @@ chrome.contextMenus.create({
 
 function getClickHandlerLink() {
   return function(info, tab){
-    makeTab(info.linkUrl, info, tab);
+    openNewTab(info.linkUrl, info, tab);
   };
 }
 
 chrome.contextMenus.create({
-    'title' : 'View link URL in ' + product,
+    'title' : product + ' for this link',
     'type' : 'normal',
     'contexts' : ['link'],
     'onclick' : getClickHandlerLink()
@@ -120,12 +115,12 @@ chrome.contextMenus.create({
 
 function getClickHandlerImage() {
   return function(info, tab){
-    makeTab(info.srcUrl, info, tab);
+    openNewTab(info.srcUrl, info, tab);
   };
 }
 
 chrome.contextMenus.create({
-    'title' : 'View image URL in ' + product,
+    'title' : product + ' for this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : getClickHandlerImage()
@@ -135,12 +130,12 @@ chrome.contextMenus.create({
 
 function getClickHandlerFrame() {
   return function(info, tab){
-    makeTab(info.frameUrl, info, tab);
+    openNewTab(info.frameUrl, info, tab);
   };
 }
 
 chrome.contextMenus.create({
-    'title' : 'View frame URL in ' + product,
+    'title' : product + ' for this frame',
     'type' : 'normal',
     'contexts' : ['frame'],
     'onclick' : getClickHandlerFrame()

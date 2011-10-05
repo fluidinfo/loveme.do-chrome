@@ -1,7 +1,7 @@
 {
-  "name": "Fluidinfo Thing Engine!",
+  "name": "Fluidinfo!",
   "version": "1.0",
-  "description": "The Fluidinfo Thing Engine extension",
+  "description": "The Fluidinfo extension",
   "background_page": "background.html",
   "permissions": ["contextMenus", "tabs"],
   "icons" : {
@@ -9,6 +9,6 @@
   },
   "page_action": {
     "default_icon": "icon.png",
-    "default_title": "This page URL in the Fluidinfo Thing Engine"
+    "default_title": "See this page in Fluidinfo"
   }
 }
