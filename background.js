@@ -1,4 +1,4 @@
-var base = 'http://new.fluidinfo.com/about/';
+var base = 'http://www.fluidinfo.com/about/';
 var product = 'Fluidinfo';
 var defaultAbout = 'fluidinfo';
 
