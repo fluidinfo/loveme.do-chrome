@@ -1,14 +1,25 @@
-====================
-Installation and use
-====================
+==============================
+The Fluidinfo chrome extension
+==============================
 
-For now you'll need to install the this as an unpacked extension in
-Chrome. Visit `chrome://extensions`, turn on Developer Mode, and click
-`Load unpacked extension`. Then navigate to the directory of this extension
-and Chrome will do the rest.
+Use
+---
+
+The Fluidinfo extension makes it trivial to jump to Fluidinfo to examine
+and tag anything you're looking at on the web.
 
 When you have text selected in Chrome, or when you're over a link or an
 image, the right-click context menu will give you the option of jumping to
-the relevant thing (URL, selected text) in Fluidinfo. You can also click on
-the 'fi' icon in the location bar to jump to the object for the URL of the
-current page.
+that thing (URL, selected text) in Fluidinfo. You can also click the blue
+Fluidinfo 'i' icon in the location bar to jump to the object for the URL of
+the current page, or just right click on the background of the page.
+
+When over a linked image, the context menu will let you jump to either the
+URL of the image or the URL of the link in Fluidinfo.
+
+Installing from source as an unpacked Chrome extension
+------------------------------------------------------
+
+Visit `chrome://extensions`, turn on Developer Mode, and click `Load
+unpacked extension`. Then navigate to the directory of this extension and
+Chrome will do the rest.

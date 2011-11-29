@@ -1,7 +1,7 @@
 {
-  "name": "Fluidinfo!",
+  "name": "Fluidinfo",
   "version": "1.0",
-  "description": "The Fluidinfo extension",
+  "description": "A chrome extension to jump to Fluidinfo to see & tag browser URLs and selected text.",
   "background_page": "background.html",
   "permissions": ["contextMenus", "tabs"],
   "icons" : {
