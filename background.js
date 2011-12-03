@@ -70,7 +70,7 @@ function refererFragment(info){
 
 function getClickHandlerSelection() {
   return function(info, tab){
-    openNewTab(info.selectionText, info, tab);
+    openNewTab(info.selectionText.toLowerCase(), info, tab);
   };
 }
 
