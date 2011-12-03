@@ -1,6 +1,6 @@
-var base = 'http://fluidinfo.com/about/#!/';
+var base = 'http://fluidinfo.com/about/';
 var product = 'Fluidinfo';
-var defaultAbout = 'fluidinfo';
+var defaultAbout = '@fluidinfo';
 
 // --------------------------- Page action --------------------------
 
