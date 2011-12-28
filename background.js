@@ -68,105 +68,78 @@ function refererFragment(info){
 
 // --------------------------- Selection --------------------------
 
-function getClickHandlerSelection() {
-  return function(info, tab){
-    openNewTab(info.selectionText.toLowerCase(), info, tab);
-  };
-}
-
 chrome.contextMenus.create({
     'title' : product + ' for "%s"',
     'type' : 'normal',
     'contexts' : ['selection'],
-    'onclick' : getClickHandlerSelection()
+    'onclick' : function(info, tab){
+        openNewTab(info.selectionText.toLowerCase(), info, tab);
+    }
 });
 
 // --------------------------- Page --------------------------
-
-function getClickHandlerPage() {
-  return function(info, tab){
-    openNewTab(info.pageUrl, info, tab);
-  };
-}
 
 chrome.contextMenus.create({
     'title' : product + ' for this page',
     'type' : 'normal',
     'contexts' : ['page'],
-    'onclick' : getClickHandlerPage()
+    'onclick' : function(info, tab){
+        openNewTab(info.pageUrl, info, tab);
+    }
 });
 
 // --------------------------- Link --------------------------
-
-function getClickHandlerLink() {
-  return function(info, tab){
-    openNewTab(info.linkUrl, info, tab);
-  };
-}
 
 chrome.contextMenus.create({
     'title' : product + ' for this link',
     'type' : 'normal',
     'contexts' : ['link'],
-    'onclick' : getClickHandlerLink()
+    'onclick' : function(info, tab){
+        openNewTab(info.linkUrl, info, tab);
+    }
+});
+
+// --------------------------- Link Text ---------------------
+
+chrome.contextMenus.create({
+    'title' : product + ' for link text',
+    'type' : 'normal',
+    'contexts' : ['link'],
+    'onclick' : function(info, tab){
+        chrome.tabs.sendRequest(
+            tab.id,
+            {url: info.linkUrl},
+            function(response){
+                if (response.result && response.result.length){
+                    // For now, just jump to text of first matching link.
+                    openNewTab(response.result[0].toLowerCase(), info, tab);
+                }
+                else {
+                    console.log('No response result or no matching link found.');
+                }
+            }
+        );
+    }
 });
 
 // --------------------------- Image --------------------------
-
-function getClickHandlerImage() {
-  return function(info, tab){
-    openNewTab(info.srcUrl, info, tab);
-  };
-}
 
 chrome.contextMenus.create({
     'title' : product + ' for this image',
     'type' : 'normal',
     'contexts' : ['image'],
-    'onclick' : getClickHandlerImage()
+    'onclick' : function(info, tab){
+        openNewTab(info.srcUrl, info, tab);
+    }
 });
 
 // --------------------------- Frame --------------------------
-
-function getClickHandlerFrame() {
-  return function(info, tab){
-    openNewTab(info.frameUrl, info, tab);
-  };
-}
 
 chrome.contextMenus.create({
     'title' : product + ' for this frame',
     'type' : 'normal',
     'contexts' : ['frame'],
-    'onclick' : getClickHandlerFrame()
+    'onclick' : function(info, tab){
+        openNewTab(info.frameUrl, info, tab);
+    }
 });
-
-
-// --------------------------- Open in existing tab -------------------------
-
-/*
- * Let's put the functionality to use the existing tab into the user's
- * prefs at some point.
- *
-
-function getClickHandlerRedirect() {
- return function(info, tab) {
- chrome.tabs.update(
-   tab.id,
-   {
-     url: makeURL(about, info)
-   });
-  };
-}
-
-// A context menu item for viewing the selection in Fluidinfo in the same tab.
-chrome.contextMenus.create({
- 'title' : 'View in Fluidinfo Thing Engine (this tab)',
- 'type' : 'normal',
- 'contexts' : ['selection'],
- 'onclick' : getClickHandlerRedirect()
-});
-
- *
- *
- */
