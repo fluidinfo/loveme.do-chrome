@@ -101,26 +101,67 @@ chrome.contextMenus.create({
 
 // --------------------------- Link Text ---------------------
 
-chrome.contextMenus.create({
+// This value will be overwritten each time the user moves over a link, so
+// the initial value is just a throwaway.
+var currentLinkText = '@fludidinfo';
+
+var linkTextMenuItem = chrome.contextMenus.create({
     'title' : product + ' for link text',
     'type' : 'normal',
     'contexts' : ['link'],
     'onclick' : function(info, tab){
-        chrome.tabs.sendRequest(
-            tab.id,
-            {url: info.linkUrl},
-            function(response){
-                if (response.result && response.result.length){
-                    // For now, just jump to text of first matching link.
-                    openNewTab(response.result[0].toLowerCase(), info, tab);
-                }
-                else {
-                    console.log('No response result or no matching link found.');
-                }
-            }
-        );
+        openNewTab(currentLinkText, info, tab);
     }
 });
+
+// The current lowercase value, and the value of the lowercase menu item, if any.
+var currentLowercaseLinkText = '@fludidinfo';
+var lowercaseLinkTextMenuItem;
+
+var createLowerCaseLinkTextMenuItem = function(text){
+    return chrome.contextMenus.create({
+        'title' : product + ' for "' + text + '"',
+        'type' : 'normal',
+        'contexts' : ['link'],
+        'onclick' : function(info, tab){
+            openNewTab(currentLowercaseLinkText, info, tab);
+        }
+    });
+};
+
+// Listen for incoming messages with new link text, and update our currentLinkText
+// variable as well as the context menu title for the link text. Add a context menu
+// item for the lowercase string too, if it's not the same as the link text.
+chrome.extension.onConnect.addListener(function(port){
+    if (port.name === 'linktext'){
+        port.onMessage.addListener(function(msg){
+            currentLinkText = msg.text;
+            var lower = currentLinkText.toLowerCase();
+            if (currentLinkText === lower){
+                // We don't need a lowercase menu item.
+                if (lowercaseLinkTextMenuItem !== undefined){
+                    chrome.contextMenus.remove(lowercaseLinkTextMenuItem);
+                    lowercaseLinkTextMenuItem = undefined;
+                }
+            }
+            else {
+                // We need a lower case menu item. So update the existing one
+                // or create a new one.
+                currentLowercaseLinkText = lower;
+                if (lowercaseLinkTextMenuItem === undefined){
+                    lowercaseLinkTextMenuItem = createLowerCaseLinkTextMenuItem(currentLowercaseLinkText);
+                }
+                else {
+                    chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
+                        title: product + ' for "' + currentLowercaseLinkText + '"'});
+                }
+            }
+            chrome.contextMenus.update(linkTextMenuItem, {
+                title: product + ' for "' + currentLinkText + '"'});
+        });
+    }
+});
+
 
 // --------------------------- Image --------------------------
 

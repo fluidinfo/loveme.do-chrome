@@ -1,18 +1,13 @@
-chrome.extension.onRequest.addListener(
-    function(request, sender, sendResponse) {
-        if (request.url){
-            var url = request.url;
-            var links = document.links;
-            var result = [];
-            for (var i = 0; i < links.length; i++){
-                if (links[i].href === url){
-                    result.push(links[i].innerText);
-                }
-            }
-            sendResponse({result: result});
-        }
-        else {
-            sendResponse({});
-        }
-    }
-);
+var port = chrome.extension.connect({name: 'linktext'});
+
+var nodes = document.getElementsByTagName('a');
+
+var createListener = function(msg){
+    return function(){
+        port.postMessage({text: msg});
+    };
+};
+
+for (var i = 0; i < nodes.length; i++){
+    nodes[i].addEventListener('mouseover', createListener(nodes[i].innerText));
+}
