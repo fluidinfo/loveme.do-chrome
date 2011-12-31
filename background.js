@@ -26,7 +26,7 @@ chrome.tabs.getSelected(
 chrome.pageAction.onClicked.addListener(
   function(tab) {
     chrome.tabs.create({
-      url: base + encodeURIComponent(tab.url),
+      url: base + '#!/' + encodeURIComponent(tab.url),
       index: tab.index + 1
     });
   }
@@ -51,10 +51,10 @@ function makeURL(about, info){
    */
   var fragment = refererFragment(info);
   if (fragment === ''){
-    return base + encodeURIComponent(about);
+    return base + '#!/' + encodeURIComponent(about);
   }
   else {
-    return base + encodeURIComponent(about) + '?' + fragment;
+    return base + '?' + fragment + '#!/' + encodeURIComponent(about);
   }
 }
 
