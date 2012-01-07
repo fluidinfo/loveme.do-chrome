@@ -136,6 +136,8 @@ chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'linktext'){
         port.onMessage.addListener(function(msg){
             currentLinkText = msg.text;
+            chrome.contextMenus.update(linkTextMenuItem, {
+                title: product + ' for "' + currentLinkText + '"'});
             var lower = currentLinkText.toLowerCase();
             if (currentLinkText === lower){
                 // We don't need a lowercase menu item.
@@ -156,8 +158,6 @@ chrome.extension.onConnect.addListener(function(port){
                         title: product + ' for "' + currentLowercaseLinkText + '"'});
                 }
             }
-            chrome.contextMenus.update(linkTextMenuItem, {
-                title: product + ' for "' + currentLinkText + '"'});
         });
     }
 });
