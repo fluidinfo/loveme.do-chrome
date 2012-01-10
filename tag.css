@@ -1,17 +1,38 @@
-div.fluidinfoDiv {
-    zindex: 999999999999;
+.fluidinfoDiv {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    float: none;
+    z-index: 100000000000;
     padding: 5px;
     display: none;
+    background-color: rgb(204,204,255);
+    text-align: left;
+    border: 1px solid #999;
 }
 
-div.fluidinfoDiv table {
+.fluidinfoDiv img {
+    margin: 3px 8px 0px 2px;
+}
+
+.fluidinfoDiv table {
     border: 1px solid #ccc;
     padding: 0;
     margin: 0;
 }
 
-div.fluidinfoDiv td {
+.fluidinfoDiv td {
     border-style: none;
     padding: 3px;
     margin: 0;
+}
+
+#_fi_cancel {
+    margin: 5px 5px 0px 0px;
+    padding: 0px 2px 0px 2px;
+}
+
+#_fi_save {
+    margin: 5px 0px 0px 0px;
+    padding: 0px 2px 0px 2px;
 }

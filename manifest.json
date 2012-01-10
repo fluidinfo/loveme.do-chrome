@@ -22,7 +22,7 @@
   },
   "content_scripts": [
     {
-      "css": ["tag.css"],
+      "css": ["cssreset-context.css", "tag.css"],
       "js": ["jquery-1.7.1.min.js", "content.js"],
       "matches": ["<all_urls>"],
       "run_at": "document_end"

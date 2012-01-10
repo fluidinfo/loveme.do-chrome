@@ -4,7 +4,8 @@
  */
 
 var data = [
-    '<div id="_fi_tag" class="fluidinfoDiv">',
+    '<div id="_fi_tag" class="yui3-cssreset fluidinfoDiv">',
+      '<a href="http://fluidinfo.com" target="_blank"><img src="' + chrome.extension.getURL('fi_19.png') + '"/></a>',
       '<a id="_fi_link" href="#" target="_blank">Visit this URL in Fluidinfo.</a>',
       '<span id="_fi_thing" style="display: none;"> | <a id="_fi_thing_link" href="#" target="_blank">#</a></span>',
       '<form>',
