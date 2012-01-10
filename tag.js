@@ -123,6 +123,27 @@ var data = [
               '</td>',
             '</tr>',
 
+            // Comment on this URL.
+            '<tr>',
+              '<td>',
+                'Comment on this URL',
+              '</td>',
+              '<td>',
+                '<table>',
+                  '<tbody>',
+                    '<tr>',
+                      '<td>',
+                        'Comment:',
+                      '</td>',
+                      '<td>',
+                        '<textarea id="comment" rows="3" />',
+                      '</td>',
+                    '</tr>',
+                  '</tbody>',
+                '</table>',
+              '</td>',
+            '</tr>',
+
             // Tag any object with this URL as the value.
             '<tr>',
               '<td>',
@@ -270,10 +291,8 @@ function save(){
         }
     }
 
-    // Read this URL later.
-    var readLater = document.getElementById('readLater').value;
-
-    if (readLater){
+    // Read this URL later?
+    if ($('#readLater').is(':checked')){
         chrome.extension.sendRequest({
             action: 'tag',
             tagNamesAndValues: { 'read-later': true },
@@ -283,13 +302,11 @@ function save(){
         });
     }
 
-    // Like this URL.
-    var like = document.getElementById('like').value;
-
-    if (like){
+    // Like this URL?
+    if ($('#like').is(':checked')){
         chrome.extension.sendRequest({
             action: 'tag',
-            tagNamesAndValues: { 'like': true },
+            tagNamesAndValues: { like: true },
             about: document.location.toString()
         }, function(response) {
             console.log(response);
@@ -302,7 +319,20 @@ function save(){
     if (rating){
         chrome.extension.sendRequest({
             action: 'tag',
-            tagNamesAndValues: { 'rating': parseFluidinfoValue(rating) },
+            tagNamesAndValues: { rating: parseFluidinfoValue(rating) },
+            about: document.location.toString()
+        }, function(response) {
+            console.log(response);
+        });
+    }
+
+    // Comment on this URL.
+    var comment = document.getElementById('comment').value;
+
+    if (comment){
+        chrome.extension.sendRequest({
+            action: 'tag',
+            tagNamesAndValues: { comment: comment },
             about: document.location.toString()
         }, function(response) {
             console.log(response);
