@@ -1,0 +1,46 @@
+body {
+    overflow: hidden;
+    margin: 0px;
+    padding: 0px;
+    background: white;
+}
+
+div:first-child {
+    margin-top: 0px;
+}
+
+div {
+    display: block;
+    text-align: center;
+    padding: 1px 3px;
+    font-family: sans-serif;
+    font-size: 0.9em;
+    margin-top: 1px;
+    background: #cccccc;
+}
+
+div.link:hover {
+    background: #aaaaaa;
+    cursor: pointer;
+}
+
+div#login {
+    text-align: left;
+}
+
+form {
+    padding: 0px 3px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+input {
+    padding: 1px 3px;
+    font-family: sans-serif;
+    font-size: 0.9em;
+    margin-top: 1px;
+}
+
+input#suffix {
+    width: 50px;
+}

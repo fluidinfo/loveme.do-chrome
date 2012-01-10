@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Fluidinfo Options</title>
+    <script src="options.js"></script>
+  </head>
+  <body onload="restore_options()">
+    <h1>Fluidinfo Options</h1>
+    <div id="status"></div>
+    <form onSubmit="return save_options()">
+      <label for="username">Username:</label>
+      <input type="text" id="username" />
+      <br />
+      <label for="password">Password:</label>
+      <input type="password" id="password" />
+      <br />
+      <label for="advanced">Advanced Mode</label>
+      <input type="checkbox" id="advanced" />
+      <br />
+      <input type="submit" value="Save" />
+    </form>
+  </body>
+</html>

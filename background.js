@@ -2,36 +2,6 @@ var base = 'http://fluidinfo.com/about/';
 var product = 'Fluidinfo';
 var defaultAbout = '@fluidinfo';
 
-// --------------------------- Page action --------------------------
-
-chrome.tabs.onSelectionChanged.addListener(
-  function(tabId) {
-    chrome.pageAction.show(tabId);
-  }
-);
-
-chrome.tabs.onUpdated.addListener(
-  function(tabId) {
-    chrome.pageAction.show(tabId);
-  }
-);
-
-chrome.tabs.getSelected(
-  null,
-  function(tab) {
-    chrome.pageAction.show(tab.id);
-  }
-);
-
-chrome.pageAction.onClicked.addListener(
-  function(tab) {
-    chrome.tabs.create({
-      url: base + '#!/' + encodeURIComponent(tab.url),
-      index: tab.index + 1
-    });
-  }
-);
-
 // ----------------- Utility functions for context menus -----------------
 
 function openNewTab(about, info, tab){
@@ -183,4 +153,83 @@ chrome.contextMenus.create({
     'onclick' : function(info, tab){
         openNewTab(info.frameUrl, info, tab);
     }
+});
+
+
+// Create the listener for fluidinfo calls.
+
+chrome.extension.onRequest.addListener(
+    function(request, sender, sendResponse){
+        if (request.action === 'validate'){
+            var username = request.username;
+            var password = request.password;
+            if (!(username && password)){
+                sendResponse({
+                    message: 'Error: username or password were not passed.',
+                    success: false
+                });
+                return;
+            }
+            var fi = fluidinfo({
+                username: username,
+                password: password,
+                instance: 'main'
+            });
+            fi.api.get({
+                path: ['users', username],
+                onSuccess: function(response){
+                    localStorage.username = username;
+                    localStorage.password = password;
+                    sendResponse({success: true});
+                },
+                onError: function(response){
+                    sendResponse({success: false});
+                }
+            });
+        }
+        else if (request.action === 'tag'){
+            var username = localStorage.username;
+            var password = localStorage.password;
+            if (!(username && password)){
+                sendResponse({
+                    message: 'Error: username or password were not found in local storage.',
+                    success: false
+                });
+                return;
+            }
+            var fi = fluidinfo({
+                username: username,
+                password: password,
+                instance: 'main'
+            });
+            var values = {};
+            var tagName;
+            for (tagName in request.tagNamesAndValues){
+                var tagValue = request.tagNamesAndValues[tagName];
+                if (typeof tagValue !== 'function'){
+                    values[username + '/' + tagName] = tagValue;
+                }
+            }
+            fi.update({
+                where: 'fluiddb/about = "' + request.about + '"',
+                values: values,
+                onSuccess: function(response){
+                    sendResponse({
+                        success: true
+                    });
+                },
+                onError: function(response){
+                    console.log('Fluidinfo API call failed:');
+                    console.log(response);
+                    sendResponse({success: false});
+                }
+            });
+        }
+    }
+);
+
+// ---------------- Tagging ------------------------------------
+
+chrome.browserAction.onClicked.addListener(function(tab){
+    chrome.tabs.executeScript(tab.id, {file: "tag.js"});
 });
