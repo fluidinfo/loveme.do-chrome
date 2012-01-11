@@ -155,8 +155,7 @@ chrome.contextMenus.create({
     }
 });
 
-
-// Create the listener for fluidinfo calls.
+// ------------------- Tagging (from the popup) ----------------
 
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
@@ -172,18 +171,22 @@ chrome.extension.onRequest.addListener(
             }
             var fi = fluidinfo({
                 username: username,
-                password: password,
-                instance: 'main'
+                password: password
             });
             fi.api.get({
                 path: ['users', username],
                 onSuccess: function(response){
                     localStorage.username = username;
                     localStorage.password = password;
-                    sendResponse({success: true});
+                    sendResponse({
+                        success: true
+                    });
                 },
                 onError: function(response){
-                    sendResponse({success: false});
+                    sendResponse({
+                        message: 'Authentication failed: ' + response.statusText + ' (status ' + response.status + ').',
+                        success: false
+                    });
                 }
             });
         }
@@ -192,15 +195,14 @@ chrome.extension.onRequest.addListener(
             var password = localStorage.password;
             if (!(username && password)){
                 sendResponse({
-                    message: 'Error: username or password were not found in local storage.',
+                    message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
                     success: false
                 });
                 return;
             }
             var fi = fluidinfo({
                 username: username,
-                password: password,
-                instance: 'main'
+                password: password
             });
             var values = {};
             var tagName;
@@ -221,15 +223,12 @@ chrome.extension.onRequest.addListener(
                 onError: function(response){
                     console.log('Fluidinfo API call failed:');
                     console.log(response);
-                    sendResponse({success: false});
+                    sendResponse({
+                        message: 'Fluidinfo call failed: ' + response.statusText + ' (status ' + response.status + ').',
+                        success: false
+                    });
                 }
             });
         }
     }
 );
-
-// ---------------- Tagging ------------------------------------
-
-chrome.browserAction.onClicked.addListener(function(tab){
-    chrome.tabs.executeScript(tab.id, {file: "tag.js"});
-});
