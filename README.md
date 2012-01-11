@@ -4,11 +4,11 @@ The Fluidinfo chrome extension
 
 The Fluidinfo extension allows you to do two things:
 
- 1. Tag URLs in Fluidinfo while browsing.
- 2. Jump to Fluidinfo to examine and tag anything you're looking at on the web.
+1. Tag URLs in Fluidinfo while browsing.
+2. Jump to Fluidinfo to examine and tag anything you're looking at on the web.
 
-1. Tagging URLs
----------------
+Tagging URLs
+------------
 
 To tag URLs, you will first need to log in. Right-click the Fluidinfo icon
 and enter your Fluidinfo username and password.  Then, when browsing,
@@ -30,8 +30,8 @@ buttons and a copy/paste of some URLs. Want to pass a URL to a friend, tag
 their @name object with it as a tag value. It might sound complicated, but
 it's very simple when you see it in action. Don't be shy, give it a try!
 
-2. Jumping to pages in Fluidnfo
--------------------------------
+Jumping to pages in Fluidnfo
+----------------------------
 
 When you have text selected, or when you're over a link or an image, the
 right-click context menu will give you the option of jumping to that thing
@@ -64,4 +64,5 @@ on suggestions.  You can mail us at info@fluidinfo.com or come hang out on
 the #fluidinfo IRC channel with us on irc.freenode.net.
 
 Happy tagging!
+
 The Fluidinfo Team
