@@ -7,9 +7,15 @@
   </head>
   <body onLoad="fi_init();">
     <div id="_fi_tag" class="fluidinfoDiv">
+      <p class="_fi_initial_p">
       <a href="http://fluidinfo.com" target="_blank"><img src="fi_19.png"/></a>
       <a id="_fi_link" href="#" target="_blank">Visit this URL in Fluidinfo.</a>
       <span id="_fi_thing"> | <a id="_fi_thing_link" href="#" target="_blank">#</a></span>
+      </p>
+      <p>
+        Complete whichever of the following sections are relevant, then click Save below. All sections
+        are optional.
+      </p>
       <form>
         <table>
           <tbody>
@@ -17,26 +23,16 @@
             <!-- Regular tag with name and value on this URL. -->
             <tr>
               <td>
-                Tag this URL:
-              </td>
-              <td>
+                Tag this URL (value is optional):
                 <table>
                   <tbody>
                     <tr>
-                      <td>
-                        Tag name
-                      </td>
-                      <td>
-                        <input type="text" id="tagName1" />
-                      </td>
+                      <td>Tag&nbsp;name</td>
+                      <td><input type="text" id="tagName1" /></td>
                     </tr>
                     <tr>
-                      <td>
-                        Tag value
-                      </td>
-                      <td>
-                        <input type="text" id="tagValue" />
-                      </td>
+                      <td>Tag&nbsp;value</td>
+                      <td><input type="text" id="tagValue" /></td>
                     </tr>
                   </tbody>
                 </table>
@@ -46,128 +42,57 @@
             <!-- Keywords (tags with no value) on this URL. -->
             <tr>
               <td>
-                Keywords (tags with no value) for this URL:
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        Keywords
-                      </td>
-                      <td>
-                        <input type="text" id="keywords" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                Keywords (tags with no value) for this URL (separated by spaces):
+                <input type="text" id="keywords" />
               </td>
             </tr>
 
             <!-- Read this URL later. -->
             <tr>
               <td>
-                Read this URL later?
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        Read later?
-                      </td>
-                      <td>
-                        <input type="checkbox" id="readLater" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                Read this later?
+                <input type="checkbox" id="readLater" />
               </td>
             </tr>
 
             <!-- Like this URL. -->
             <tr>
               <td>
-                Like this URL?
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        Like:
-                      </td>
-                      <td>
-                        <input type="checkbox" id="like" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                Like this?
+                <input type="checkbox" id="like" />
               </td>
             </tr>
 
             <!-- Rate this URL. -->
             <tr>
               <td>
-                Give this URL a rating
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        Rating:
-                      </td>
-                      <td>
-                        <input type="text" id="rating" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                Rating:
+                <input type="text" id="rating" size="10"/>
               </td>
             </tr>
 
             <!-- Comment on this URL. -->
             <tr>
               <td>
-                Comment on this URL
-              </td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>
-                        Comment:
-                      </td>
-                      <td>
-                        <textarea id="comment" rows="3" /></textarea>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                Comment:
+                <textarea id="comment" rows="3" /></textarea>
               </td>
             </tr>
 
             <!-- Tag any object with this URL as the value. -->
             <tr>
               <td>
-                Tag something with this URL as a value.
-              </td>
-              <td>
+                Use this URL as a tag value for something:
                 <table>
                   <tbody>
                     <tr>
-                      <td>
-                        Tag name
-                      </td>
+                      <td>Tag&nbsp;name</td>
                       <td>
                         <input type="text" id="tagName2" />
                       </td>
                     </tr>
                     <tr>
-                      <td>
-                        Thing
-                      </td>
+                      <td>Thing</td>
                       <td>
                         <input type="text" id="about" />
                       </td>
@@ -180,6 +105,7 @@
           </tbody>
         </table>
 
+        <input id="_fi_cancel" type="submit" value="Cancel" />
         <input id="_fi_save" type="submit" value="Save" />
         <span id="_fi_status"></span>
       </form>

@@ -1,5 +1,11 @@
 body {
-    width: 600px;
+    width: 300px;
+    margin: 2px;
+}
+
+._fi_initial_p {
+    padding: 0px;
+    margin: 0px;
 }
 
 .fluidinfoDiv {
@@ -14,25 +20,38 @@ body {
 }
 
 .fluidinfoDiv table {
-    border: 1px solid #ccc;
     padding: 0;
     margin: 0;
 }
 
-.fluidinfoDiv td {
-    border-style: none;
+.fluidinfoDiv > form > table > tbody > tr > td {
     padding: 3px;
-    margin: 0;
+    vertical-align: top;
+    align: top;
+    border: 1px solid #aaa;
+}
+
+.fluidinfoDiv > form > table > tbody > tr:nth-child(odd) {
+    background-color: rgb(204,204,240);
+}
+
+.fluidinfoDiv input, .fluidinfoDiv textarea {
+    background-color: #eee;
+}
+
+#_fi_cancel {
+    margin: 5px 0px 0px 0px;
+    padding: 3px 3px 3px 3px;
 }
 
 #_fi_save {
     margin: 5px 0px 0px 0px;
-    padding: 0px 2px 0px 2px;
+    padding: 3px 3px 3px 3px;
 }
 
 #_fi_status {
     margin: 5px 0px 0px 0px;
-    padding: 0px 2px 0px 2px;
+    padding: 3px 3px 3px 3px;
     visibility: hidden;
 }
 
