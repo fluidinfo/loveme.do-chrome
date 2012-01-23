@@ -42,7 +42,7 @@ function refererFragment(info){
 // --------------------------- Selection --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' "%s"',
+    'title' : 'Fluidinfo "%s"',
     'type' : 'normal',
     'contexts' : ['selection'],
     'onclick' : function(info, tab){
@@ -53,7 +53,7 @@ chrome.contextMenus.create({
 // --------------------------- Page --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this page',
+    'title' : 'Fluidinfo for this page',
     'type' : 'normal',
     'contexts' : ['page'],
     'onclick' : function(info, tab){
@@ -65,7 +65,7 @@ chrome.contextMenus.create({
 
 var urlTextMenuItem = chrome.contextMenus.create({
     // The title gets updated dynamically, initial value unimportant.
-    'title' : product + ' for this link',
+    'title' : 'Fluidinfo for this link',
     'type' : 'normal',
     'contexts' : ['link'],
     'onclick' : function(info, tab){
@@ -81,7 +81,7 @@ var currentLinkText = '@fludidinfo';
 
 var linkTextMenuItem = chrome.contextMenus.create({
     // The title gets updated dynamically, initial value unimportant.
-    'title' : product + ' for link text',
+    'title' : 'Fluidinfo for link text',
     'type' : 'normal',
     'contexts' : ['link'],
     'onclick' : function(info, tab){
@@ -95,7 +95,7 @@ var lowercaseLinkTextMenuItem;
 
 var createLowerCaseLinkTextMenuItem = function(text){
     return chrome.contextMenus.create({
-        'title' : product + ' "' + text + '"',
+        'title' : 'Fluidinfo "' + text + '"',
         'type' : 'normal',
         'contexts' : ['link'],
         'onclick' : function(info, tab){
@@ -110,7 +110,7 @@ var atNameLinkTextMenuItem;
 
 var createAtNameLinkTextMenuItem = function(text){
     return chrome.contextMenus.create({
-        'title' : product + ' "' + text + '"',
+        'title' : 'Fluidinfo "' + text + '"',
         'type' : 'normal',
         'contexts' : ['link'],
         'onclick' : function(info, tab){
@@ -127,11 +127,11 @@ chrome.extension.onConnect.addListener(function(port){
         port.onMessage.addListener(function(msg){
             // Put the current URL into the menu for the link.
             chrome.contextMenus.update(urlTextMenuItem, {
-                title: product + ' "' + msg.url + '"'
+                title: 'Fluidinfo "' + msg.url + '"'
             });
             currentLinkText = msg.text;
             chrome.contextMenus.update(linkTextMenuItem, {
-                title: product + ' "' + currentLinkText + '"'});
+                title: 'Fluidinfo "' + currentLinkText + '"'});
             var lower = currentLinkText.toLowerCase();
             if (currentLinkText === lower){
                 // We don't need a lowercase menu item.
@@ -149,7 +149,7 @@ chrome.extension.onConnect.addListener(function(port){
                 }
                 else {
                     chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
-                        title: product + ' "' + currentLowercaseLinkText + '"'});
+                        title: 'Fluidinfo "' + currentLowercaseLinkText + '"'});
                 }
             }
 
@@ -164,7 +164,7 @@ chrome.extension.onConnect.addListener(function(port){
                 }
                 else {
                     chrome.contextMenus.update(atNameLinkTextMenuItem, {
-                        title: product + ' "' + currentAtNameText + '"'});
+                        title: 'Fluidinfo "' + currentAtNameText + '"'});
                 }
             }
             else {
@@ -182,7 +182,7 @@ chrome.extension.onConnect.addListener(function(port){
 // --------------------------- Image --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this image',
+    'title' : 'Fluidinfo for this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : function(info, tab){
@@ -193,7 +193,7 @@ chrome.contextMenus.create({
 // --------------------------- Frame --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this frame',
+    'title' : 'Fluidinfo for this frame',
     'type' : 'normal',
     'contexts' : ['frame'],
     'onclick' : function(info, tab){

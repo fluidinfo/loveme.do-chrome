@@ -7,8 +7,6 @@ var createListener = function(node){
     return function(){
         // Send the link text, trimmed of leading/trailing whitespace and
         // also the URL of the page.
-        console.log('Sending txt = ' + node.innerText.replace(/^\s+|\s+$/g, ''));
-        console.log('Sending url = ' + document.location.toString().toLowerCase());
         port.postMessage({
             text: node.innerText.replace(/^\s+|\s+$/g, ''),
             url: document.location.toString().toLowerCase()
