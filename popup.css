@@ -1,0 +1,60 @@
+body {
+    width: 300px;
+    margin: 2px;
+}
+
+._fi_initial_p {
+    padding: 0px;
+    margin: 0px;
+}
+
+.fluidinfoDiv {
+    padding: 5px;
+    background-color: rgb(204,204,255);
+    text-align: left;
+    border: 1px solid #999;
+}
+
+.fluidinfoDiv img {
+    margin: 3px 8px 0px 2px;
+}
+
+.fluidinfoDiv table {
+    padding: 0;
+    margin: 0;
+}
+
+.fluidinfoDiv > form > table > tbody > tr > td {
+    padding: 3px;
+    vertical-align: top;
+    align: top;
+    border: 1px solid #aaa;
+}
+
+.fluidinfoDiv > form > table > tbody > tr:nth-child(odd) {
+    background-color: rgb(204,204,240);
+}
+
+.fluidinfoDiv input, .fluidinfoDiv textarea {
+    background-color: #eee;
+}
+
+#_fi_cancel {
+    margin: 5px 0px 0px 0px;
+    padding: 3px 3px 3px 3px;
+}
+
+#_fi_save {
+    margin: 5px 0px 0px 0px;
+    padding: 3px 3px 3px 3px;
+}
+
+#_fi_status {
+    margin: 5px 0px 0px 0px;
+    padding: 3px 3px 3px 3px;
+    visibility: hidden;
+}
+
+#_fi_thing {
+    visibility: hidden;
+}

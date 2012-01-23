@@ -2,36 +2,6 @@ var base = 'http://fluidinfo.com/about/';
 var product = 'Fluidinfo';
 var defaultAbout = '@fluidinfo';
 
-// --------------------------- Page action --------------------------
-
-chrome.tabs.onSelectionChanged.addListener(
-  function(tabId) {
-    chrome.pageAction.show(tabId);
-  }
-);
-
-chrome.tabs.onUpdated.addListener(
-  function(tabId) {
-    chrome.pageAction.show(tabId);
-  }
-);
-
-chrome.tabs.getSelected(
-  null,
-  function(tab) {
-    chrome.pageAction.show(tab.id);
-  }
-);
-
-chrome.pageAction.onClicked.addListener(
-  function(tab) {
-    chrome.tabs.create({
-      url: base + encodeURIComponent(tab.url),
-      index: tab.index + 1
-    });
-  }
-);
-
 // ----------------- Utility functions for context menus -----------------
 
 function openNewTab(about, info, tab){
@@ -51,10 +21,10 @@ function makeURL(about, info){
    */
   var fragment = refererFragment(info);
   if (fragment === ''){
-    return base + encodeURIComponent(about);
+    return base + '#!/' + encodeURIComponent(about);
   }
   else {
-    return base + encodeURIComponent(about) + '?' + fragment;
+    return base + '?' + fragment + '#!/' + encodeURIComponent(about);
   }
 }
 
@@ -101,26 +71,67 @@ chrome.contextMenus.create({
 
 // --------------------------- Link Text ---------------------
 
-chrome.contextMenus.create({
+// This value will be overwritten each time the user moves over a link, so
+// the initial value is just a throwaway.
+var currentLinkText = '@fludidinfo';
+
+var linkTextMenuItem = chrome.contextMenus.create({
     'title' : product + ' for link text',
     'type' : 'normal',
     'contexts' : ['link'],
     'onclick' : function(info, tab){
-        chrome.tabs.sendRequest(
-            tab.id,
-            {url: info.linkUrl},
-            function(response){
-                if (response.result && response.result.length){
-                    // For now, just jump to text of first matching link.
-                    openNewTab(response.result[0].toLowerCase(), info, tab);
-                }
-                else {
-                    console.log('No response result or no matching link found.');
-                }
-            }
-        );
+        openNewTab(currentLinkText, info, tab);
     }
 });
+
+// The current lowercase value, and the value of the lowercase menu item, if any.
+var currentLowercaseLinkText = '@fludidinfo';
+var lowercaseLinkTextMenuItem;
+
+var createLowerCaseLinkTextMenuItem = function(text){
+    return chrome.contextMenus.create({
+        'title' : product + ' for "' + text + '"',
+        'type' : 'normal',
+        'contexts' : ['link'],
+        'onclick' : function(info, tab){
+            openNewTab(currentLowercaseLinkText, info, tab);
+        }
+    });
+};
+
+// Listen for incoming messages with new link text, and update our currentLinkText
+// variable as well as the context menu title for the link text. Add a context menu
+// item for the lowercase string too, if it's not the same as the link text.
+chrome.extension.onConnect.addListener(function(port){
+    if (port.name === 'linktext'){
+        port.onMessage.addListener(function(msg){
+            currentLinkText = msg.text;
+            chrome.contextMenus.update(linkTextMenuItem, {
+                title: product + ' for "' + currentLinkText + '"'});
+            var lower = currentLinkText.toLowerCase();
+            if (currentLinkText === lower){
+                // We don't need a lowercase menu item.
+                if (lowercaseLinkTextMenuItem !== undefined){
+                    chrome.contextMenus.remove(lowercaseLinkTextMenuItem);
+                    lowercaseLinkTextMenuItem = undefined;
+                }
+            }
+            else {
+                // We need a lower case menu item. So update the existing one
+                // or create a new one.
+                currentLowercaseLinkText = lower;
+                if (lowercaseLinkTextMenuItem === undefined){
+                    lowercaseLinkTextMenuItem = createLowerCaseLinkTextMenuItem(currentLowercaseLinkText);
+                }
+                else {
+                    chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
+                        title: product + ' for "' + currentLowercaseLinkText + '"'});
+                }
+            }
+        });
+    }
+});
+
 
 // --------------------------- Image --------------------------
 
@@ -143,3 +154,81 @@ chrome.contextMenus.create({
         openNewTab(info.frameUrl, info, tab);
     }
 });
+
+// ------------------- Tagging (from the popup) ----------------
+
+chrome.extension.onRequest.addListener(
+    function(request, sender, sendResponse){
+        if (request.action === 'validate'){
+            var username = request.username;
+            var password = request.password;
+            if (!(username && password)){
+                sendResponse({
+                    message: 'Error: username or password were not passed.',
+                    success: false
+                });
+                return;
+            }
+            var fi = fluidinfo({
+                username: username,
+                password: password
+            });
+            fi.api.get({
+                path: ['users', username],
+                onSuccess: function(response){
+                    localStorage.username = username;
+                    localStorage.password = password;
+                    sendResponse({
+                        success: true
+                    });
+                },
+                onError: function(response){
+                    sendResponse({
+                        message: 'Authentication failed: ' + response.statusText + ' (status ' + response.status + ').',
+                        success: false
+                    });
+                }
+            });
+        }
+        else if (request.action === 'tag'){
+            var username = localStorage.username;
+            var password = localStorage.password;
+            if (!(username && password)){
+                sendResponse({
+                    message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
+                    success: false
+                });
+                return;
+            }
+            var fi = fluidinfo({
+                username: username,
+                password: password
+            });
+            var values = {};
+            var tagName;
+            for (tagName in request.tagNamesAndValues){
+                var tagValue = request.tagNamesAndValues[tagName];
+                if (typeof tagValue !== 'function'){
+                    values[username + '/' + tagName] = tagValue;
+                }
+            }
+            fi.update({
+                where: 'fluiddb/about = "' + request.about + '"',
+                values: values,
+                onSuccess: function(response){
+                    sendResponse({
+                        success: true
+                    });
+                },
+                onError: function(response){
+                    console.log('Fluidinfo API call failed:');
+                    console.log(response);
+                    sendResponse({
+                        message: 'Fluidinfo call failed: ' + response.statusText + ' (status ' + response.status + ').',
+                        success: false
+                    });
+                }
+            });
+        }
+    }
+);
