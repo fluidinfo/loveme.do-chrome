@@ -2,6 +2,9 @@ var base = 'http://fluidinfo.com/about/';
 var product = 'Fluidinfo';
 var defaultAbout = '@fluidinfo';
 
+var twitterURLRegex = /^https?:\/\/twitter.com/;
+var possibleAtNameRegex = /^\w+$/;
+
 // ----------------- Utility functions for context menus -----------------
 
 function openNewTab(about, info, tab){
@@ -39,7 +42,7 @@ function refererFragment(info){
 // --------------------------- Selection --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for "%s"',
+    'title' : product + ' "%s"',
     'type' : 'normal',
     'contexts' : ['selection'],
     'onclick' : function(info, tab){
@@ -60,7 +63,8 @@ chrome.contextMenus.create({
 
 // --------------------------- Link --------------------------
 
-chrome.contextMenus.create({
+var urlTextMenuItem = chrome.contextMenus.create({
+    // The title gets updated dynamically, initial value unimportant.
     'title' : product + ' for this link',
     'type' : 'normal',
     'contexts' : ['link'],
@@ -76,6 +80,7 @@ chrome.contextMenus.create({
 var currentLinkText = '@fludidinfo';
 
 var linkTextMenuItem = chrome.contextMenus.create({
+    // The title gets updated dynamically, initial value unimportant.
     'title' : product + ' for link text',
     'type' : 'normal',
     'contexts' : ['link'],
@@ -85,16 +90,31 @@ var linkTextMenuItem = chrome.contextMenus.create({
 });
 
 // The current lowercase value, and the value of the lowercase menu item, if any.
-var currentLowercaseLinkText = '@fludidinfo';
+var currentLowercaseLinkText = '@fludiinfo';
 var lowercaseLinkTextMenuItem;
 
 var createLowerCaseLinkTextMenuItem = function(text){
     return chrome.contextMenus.create({
-        'title' : product + ' for "' + text + '"',
+        'title' : product + ' "' + text + '"',
         'type' : 'normal',
         'contexts' : ['link'],
         'onclick' : function(info, tab){
             openNewTab(currentLowercaseLinkText, info, tab);
+        }
+    });
+};
+
+// The current lowercase value, and the value of the lowercase menu item, if any.
+var currentAtNameText = '@yourname';
+var atNameLinkTextMenuItem;
+
+var createAtNameLinkTextMenuItem = function(text){
+    return chrome.contextMenus.create({
+        'title' : product + ' "' + text + '"',
+        'type' : 'normal',
+        'contexts' : ['link'],
+        'onclick' : function(info, tab){
+            openNewTab(currentAtNameText, info, tab);
         }
     });
 };
@@ -105,9 +125,13 @@ var createLowerCaseLinkTextMenuItem = function(text){
 chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'linktext'){
         port.onMessage.addListener(function(msg){
+            // Put the current URL into the menu for the link.
+            chrome.contextMenus.update(urlTextMenuItem, {
+                title: product + ' "' + msg.url + '"'
+            });
             currentLinkText = msg.text;
             chrome.contextMenus.update(linkTextMenuItem, {
-                title: product + ' for "' + currentLinkText + '"'});
+                title: product + ' "' + currentLinkText + '"'});
             var lower = currentLinkText.toLowerCase();
             if (currentLinkText === lower){
                 // We don't need a lowercase menu item.
@@ -125,7 +149,29 @@ chrome.extension.onConnect.addListener(function(port){
                 }
                 else {
                     chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
-                        title: product + ' for "' + currentLowercaseLinkText + '"'});
+                        title: product + ' "' + currentLowercaseLinkText + '"'});
+                }
+            }
+
+            // Check to see if we should add an @name menu item.
+            if (lower.slice(0, 1) !== '@' && lower.length <= 20 &&
+                possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.url)){
+                // We need an @name menu item. So update the existing one
+                // or create a new one.
+                currentAtNameText = '@' + lower;
+                if (atNameLinkTextMenuItem === undefined){
+                    atNameLinkTextMenuItem = createAtNameLinkTextMenuItem(currentAtNameText);
+                }
+                else {
+                    chrome.contextMenus.update(atNameLinkTextMenuItem, {
+                        title: product + ' "' + currentAtNameText + '"'});
+                }
+            }
+            else {
+                // We don't need an @name menu item.
+                if (atNameLinkTextMenuItem !== undefined){
+                    chrome.contextMenus.remove(atNameLinkTextMenuItem);
+                    atNameLinkTextMenuItem = undefined;
                 }
             }
         });

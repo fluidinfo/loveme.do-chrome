@@ -5,8 +5,14 @@ var createListener = function(node){
     // background page. We'll use the functions returned as mouseover
     // functions on links in (and added to) the document.
     return function(){
-        // Send the link text, trimmed of leading/trailing whitespace.
-        port.postMessage({text: node.innerText.replace(/^\s+|\s+$/g, '')});
+        // Send the link text, trimmed of leading/trailing whitespace and
+        // also the URL of the page.
+        console.log('Sending txt = ' + node.innerText.replace(/^\s+|\s+$/g, ''));
+        console.log('Sending url = ' + document.location.toString().toLowerCase());
+        port.postMessage({
+            text: node.innerText.replace(/^\s+|\s+$/g, ''),
+            url: document.location.toString().toLowerCase()
+        });
         return true;
     };
 };
