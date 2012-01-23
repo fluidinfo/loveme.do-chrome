@@ -90,7 +90,7 @@ var linkTextMenuItem = chrome.contextMenus.create({
 });
 
 // The current lowercase value, and the value of the lowercase menu item, if any.
-var currentLowercaseLinkText = '@fludiinfo';
+var currentLowercaseLinkText = '@fluidinfo';
 var lowercaseLinkTextMenuItem;
 
 var createLowerCaseLinkTextMenuItem = function(text){
@@ -154,7 +154,7 @@ chrome.extension.onConnect.addListener(function(port){
             }
 
             // Check to see if we should add an @name menu item.
-            if (lower.slice(0, 1) !== '@' && lower.length <= 20 &&
+            if (lower.charAt(0) !== '@' && lower.length <= 20 &&
                 possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.url)){
                 // We need an @name menu item. So update the existing one
                 // or create a new one.
