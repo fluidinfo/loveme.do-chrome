@@ -1,18 +1,25 @@
 {
   "name": "Fluidinfo",
-  "version": "1.1.2",
-  "description": "A chrome extension to jump to Fluidinfo to see & tag browser URLs and other selected text.",
+  "version": "1.1.56",
+  "description": "Use Fluidinfo to tag URLs in interesting ways, and jump to Fluidinfo pages for them and for text selections.",
   "background_page": "background.html",
-  "permissions": ["contextMenus", "tabs"],
+  "options_page": "options.html",
+  "permissions": [
+    "<all_urls>",
+    "contextMenus",
+    "tabs",
+    "unlimitedStorage"
+  ],
   "icons" : {
     "16" : "fi_16.png",
     "48" : "fi_48.png",
     "64" : "fi_64.png",
-    "128" : "fi_128_96.png"
+    "128" : "fi_128.png"
   },
-  "page_action": {
-    "default_icon": "fi_16.png",
-    "default_title": "See this page in Fluidinfo"
+  "browser_action": {
+    "default_icon": "fi_19.png",
+    "default_popup": "popup.html",
+    "default_title": "Fluidinfo"
   },
   "content_scripts": [
     {
