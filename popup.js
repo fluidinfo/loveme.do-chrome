@@ -16,7 +16,7 @@ function parseFluidinfoValue(value){
     var numberRegex = /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/;
 
     // convert empty string to null
-    if (value === '') {
+    if (typeof value === 'undefined' || value === ''){
         return null;
     }
 
@@ -95,7 +95,7 @@ function save(url, callback){
     // Regular tag with name and value on this URL.
     var tagName1 = document.getElementById('tagName1');
     var tagValue = document.getElementById('tagValue');
-    if (tagName1.value && tagValue.value){
+    if (tagName1.value){
         var tagNamesAndValues = {};
         tagNamesAndValues[tagName1.value] = parseFluidinfoValue(tagValue.value);
         fluidinfoCallsMade++;
@@ -115,10 +115,6 @@ function save(url, callback){
             }
             maybeRunCallback();
         });
-    }
-    else if (tagName1.value){
-        status("You've set a tag name, but not a tag value.");
-        ok = false;
     }
     else if (tagValue.value){
         status("You've set a tag value, but not a tag name.");
