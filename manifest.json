@@ -1,6 +1,6 @@
 {
   "name": "Fluidinfo",
-  "version": "1.1.67",
+  "version": "1.1.95",
   "description": "Use Fluidinfo to tag URLs in interesting ways, and jump to Fluidinfo pages for them and for text selections.",
   "background_page": "background.html",
   "options_page": "options.html",

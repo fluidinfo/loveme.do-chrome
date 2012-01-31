@@ -1,9 +1,9 @@
 var base = 'http://fluidinfo.com/about/';
-var product = 'Fluidinfo';
 var defaultAbout = '@fluidinfo';
 
 var twitterURLRegex = /^https?:\/\/twitter.com/;
 var possibleAtNameRegex = /^\w+$/;
+var linkRegex = /^\w+:\/\//;
 
 // ----------------- Utility functions for context menus -----------------
 
@@ -63,8 +63,7 @@ chrome.contextMenus.create({
 
 // --------------------------- Link --------------------------
 
-var urlTextMenuItem = chrome.contextMenus.create({
-    // The title gets updated dynamically, initial value unimportant.
+var linkMenuItem = chrome.contextMenus.create({
     'title' : 'Fluidinfo for this link',
     'type' : 'normal',
     'contexts' : ['link'],
@@ -73,105 +72,83 @@ var urlTextMenuItem = chrome.contextMenus.create({
     }
 });
 
-// --------------------------- Link Text ---------------------
-
-// This value will be overwritten each time the user moves over a link, so
-// the initial value is just a throwaway.
-var currentLinkText = '@fludidinfo';
-
-var linkTextMenuItem = chrome.contextMenus.create({
-    // The title gets updated dynamically, initial value unimportant.
-    'title' : 'Fluidinfo for link text',
-    'type' : 'normal',
-    'contexts' : ['link'],
-    'onclick' : function(info, tab){
-        openNewTab(currentLinkText, info, tab);
+var updateLinkMenuItem = function(linkUrl, docURL){
+    console.log('linkUrl = "' + linkUrl + '".');
+    var url;
+    if (linkRegex.test(linkUrl)){
+        // The link looks absolute (i.e., http:// or https:// or ftp://).
+        url = linkUrl;
     }
-});
-
-// The current lowercase value, and the value of the lowercase menu item, if any.
-var currentLowercaseLinkText = '@fluidinfo';
-var lowercaseLinkTextMenuItem;
-
-var createLowerCaseLinkTextMenuItem = function(text){
-    return chrome.contextMenus.create({
-        'title' : 'Fluidinfo "' + text + '"',
-        'type' : 'normal',
-        'contexts' : ['link'],
-        'onclick' : function(info, tab){
-            openNewTab(currentLowercaseLinkText, info, tab);
+    else {
+        // A relative link. Prepend the current document protocol & host+port.
+        var parts = docURL.split('/');
+        if (linkUrl.charAt(0) === '/'){
+            url = parts[0] + '//' + parts[2] + linkUrl;
         }
-    });
+        else {
+            url = parts[0] + '//' + parts[2] + '/' + linkUrl;
+        }
+    }
+    chrome.contextMenus.update(linkMenuItem, {
+        title: 'Fluidinfo "' + url + '"'});
 };
 
-// The current lowercase value, and the value of the lowercase menu item, if any.
-var currentAtNameText = '@yourname';
-var atNameLinkTextMenuItem;
+// --------------------------- Links and link text ------------
 
-var createAtNameLinkTextMenuItem = function(text){
-    return chrome.contextMenus.create({
-        'title' : 'Fluidinfo "' + text + '"',
-        'type' : 'normal',
-        'contexts' : ['link'],
-        'onclick' : function(info, tab){
-            openNewTab(currentAtNameText, info, tab);
-        }
-    });
+var linkTextMenuItems = {};
+
+var addLinkTextMenuItem = function(text){
+    text = (text.length < 25 ? text : text.slice(0, 22) + '...').replace(/\n+/g, ' ');
+// console.log('adding "' + text + '".');
+    if (typeof linkTextMenuItems[text] === 'undefined'){
+        linkTextMenuItems[text] = chrome.contextMenus.create({
+            'title' : 'Fluidinfo "' + text + '"',
+            'type' : 'normal',
+            'contexts' : ['link'],
+            'onclick' : function(info, tab){
+                openNewTab(text, info, tab);
+            }
+        });
+    }
 };
 
-// Listen for incoming messages with new link text, and update our currentLinkText
-// variable as well as the context menu title for the link text. Add a context menu
-// item for the lowercase string too, if it's not the same as the link text.
+var clearLinkTextMenuItems = function(){
+    for (text in linkTextMenuItems){
+        if (typeof linkTextMenuItems[text] !== 'undefined'){
+            chrome.contextMenus.remove(linkTextMenuItems[text]);
+        }
+    }
+    linkTextMenuItems = {};
+};
+
+
+// Listen for incoming messages with link events (mouseover, mouseout), and
+// update our various link context menu items.
+
 chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'linktext'){
         port.onMessage.addListener(function(msg){
-            // Put the current URL into the menu for the link.
-            chrome.contextMenus.update(urlTextMenuItem, {
-                title: 'Fluidinfo "' + msg.url + '"'
-            });
-            currentLinkText = msg.text;
-            chrome.contextMenus.update(linkTextMenuItem, {
-                title: 'Fluidinfo "' + currentLinkText + '"'});
-            var lower = currentLinkText.toLowerCase();
-            if (currentLinkText === lower){
-                // We don't need a lowercase menu item.
-                if (lowercaseLinkTextMenuItem !== undefined){
-                    chrome.contextMenus.remove(lowercaseLinkTextMenuItem);
-                    lowercaseLinkTextMenuItem = undefined;
-                }
+            if (msg.mouseout){
+                // The mouse moved off a link so clear all link menus.
+                clearLinkTextMenuItems();
             }
             else {
-                // We need a lower case menu item. So update the existing one
-                // or create a new one.
-                currentLowercaseLinkText = lower;
-                if (lowercaseLinkTextMenuItem === undefined){
-                    lowercaseLinkTextMenuItem = createLowerCaseLinkTextMenuItem(currentLowercaseLinkText);
-                }
-                else {
-                    chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
-                        title: 'Fluidinfo "' + currentLowercaseLinkText + '"'});
-                }
-            }
+                // The mouse moved over a link.
+                updateLinkMenuItem(msg.linkURL, msg.docURL);
+                clearLinkTextMenuItems(); // In case we somehow missed a mouseout event.
+                // addLinkTextMenuItem(msg.linkURL);
+                if (msg.text){
+                    addLinkTextMenuItem(msg.text);
+                    var lower = msg.text.toLowerCase();
+                    addLinkTextMenuItem(lower);
 
-            // Check to see if we should add an @name menu item.
-            if (lower.charAt(0) !== '@' && lower.length <= 20 &&
-                possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.url)){
-                // We need an @name menu item. So update the existing one
-                // or create a new one.
-                currentAtNameText = '@' + lower;
-                if (atNameLinkTextMenuItem === undefined){
-                    atNameLinkTextMenuItem = createAtNameLinkTextMenuItem(currentAtNameText);
-                }
-                else {
-                    chrome.contextMenus.update(atNameLinkTextMenuItem, {
-                        title: 'Fluidinfo "' + currentAtNameText + '"'});
-                }
-            }
-            else {
-                // We don't need an @name menu item.
-                if (atNameLinkTextMenuItem !== undefined){
-                    chrome.contextMenus.remove(atNameLinkTextMenuItem);
-                    atNameLinkTextMenuItem = undefined;
+                    // Check to see if we should add an @name menu item.
+                    if (lower.charAt(0) !== '@' && lower.length <= 20 &&
+                        possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.docURL)){
+                        // We need an @name menu item. So update the existing one
+                        // or create a new one.
+                        addLinkTextMenuItem('@' + msg.text.toLowerCase());
+                    }
                 }
             }
         });
