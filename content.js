@@ -41,7 +41,7 @@ var addListeners = function(nodes){
 addListeners(document.getElementsByTagName('a'));
 
 // Arrange to add a mouse event listeners to all <a> tags that get added to
- // the document.
+// the document.
 
 var body = document.getElementsByTagName('body')[0];
 body.addEventListener ('DOMNodeInserted', function(event){

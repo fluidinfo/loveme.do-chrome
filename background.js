@@ -103,13 +103,15 @@ var updateLinkMenuItem = function(linkURL, docURL){
 // linkTextMenuItems has attributes that are the text of current
 // context menu items. Its values are the meun item indices.
 var linkTextMenuItems = {};
+var linkTextMenuItemCount = 0;
 
 var addLinkTextMenuItem = function(text){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
     if (typeof linkTextMenuItems[text] === 'undefined'){
+        linkTextMenuItemCount++;
         linkTextMenuItems[text] = chrome.contextMenus.create({
-            'title' : 'Fluidinfo "' + text + '"',
+            'title' : 'Fluidinfo (' + linkTextMenuItemCount + ')"' + text + '"',
             'type' : 'normal',
             'contexts' : ['link'],
             'onclick' : function(info, tab){
@@ -126,6 +128,7 @@ var clearLinkTextMenuItems = function(){
         }
     }
     linkTextMenuItems = {};
+    linkTextMenuItemCount = 0;
 };
 
 
