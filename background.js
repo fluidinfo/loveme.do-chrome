@@ -72,34 +72,41 @@ var linkMenuItem = chrome.contextMenus.create({
     }
 });
 
-var updateLinkMenuItem = function(linkUrl, docURL){
-    console.log('linkUrl = "' + linkUrl + '".');
+var updateLinkMenuItem = function(linkURL, docURL){
+    /*
+     * Update the context menu item that shows the URL of the current link.
+     * If linkURL does not specify a host, use the one in the document's URL
+     * (given in docURL).
+     */
     var url;
-    if (linkRegex.test(linkUrl)){
+    if (linkRegex.test(linkURL)){
         // The link looks absolute (i.e., http:// or https:// or ftp://).
-        url = linkUrl;
+        url = linkURL;
     }
     else {
         // A relative link. Prepend the current document protocol & host+port.
         var parts = docURL.split('/');
-        if (linkUrl.charAt(0) === '/'){
-            url = parts[0] + '//' + parts[2] + linkUrl;
+        if (linkURL.charAt(0) === '/'){
+            url = parts[0] + '//' + parts[2] + linkURL;
         }
         else {
-            url = parts[0] + '//' + parts[2] + '/' + linkUrl;
+            url = parts[0] + '//' + parts[2] + '/' + linkURL;
         }
     }
     chrome.contextMenus.update(linkMenuItem, {
-        title: 'Fluidinfo "' + url + '"'});
+        title: 'Fluidinfo "' + url + '"'
+    });
 };
 
-// --------------------------- Links and link text ------------
+// ---------------------- Link text context menu items ------------
 
+// linkTextMenuItems has attributes that are the text of current
+// context menu items. Its values are the meun item indices.
 var linkTextMenuItems = {};
 
 var addLinkTextMenuItem = function(text){
-    text = (text.length < 25 ? text : text.slice(0, 22) + '...').replace(/\n+/g, ' ');
-// console.log('adding "' + text + '".');
+    // Add (possibly truncated) 'text' to the context menu, if not already present.
+    text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
     if (typeof linkTextMenuItems[text] === 'undefined'){
         linkTextMenuItems[text] = chrome.contextMenus.create({
             'title' : 'Fluidinfo "' + text + '"',
@@ -134,9 +141,14 @@ chrome.extension.onConnect.addListener(function(port){
             }
             else {
                 // The mouse moved over a link.
-                updateLinkMenuItem(msg.linkURL, msg.docURL);
-                clearLinkTextMenuItems(); // In case we somehow missed a mouseout event.
-                // addLinkTextMenuItem(msg.linkURL);
+                clearLinkTextMenuItems();
+
+                // There are <a> tags with no href in them.
+                if (msg.linkURL){
+                    updateLinkMenuItem(msg.linkURL, msg.docURL);
+                }
+
+                // And there are <a> tags with no text in them.
                 if (msg.text){
                     addLinkTextMenuItem(msg.text);
                     var lower = msg.text.toLowerCase();
