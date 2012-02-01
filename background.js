@@ -166,7 +166,7 @@ chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'context'){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
-                console.log('selected "' + msg.selection + '".');
+                // console.log('selected "' + msg.selection + '".');
                 currentlySelectedText = msg.selection;
                 addContextMenuItem(currentlySelectedText, 'selection');
             }
@@ -174,16 +174,16 @@ chrome.extension.onConnect.addListener(function(port){
                 if (currentlySelectedText !== undefined){
                     removeContextMenuItem(currentlySelectedText);
                     currentlySelectedText = undefined;
-                    console.log('selection cleared');
+                    // console.log('selection cleared');
                 }
             }
             else if (msg.mouseout){
-                console.log('mouse out');
+                // console.log('mouse out');
                 // The mouse moved off a link so clear all link menus.
                 clearContextMenuItems();
             }
             else {
-                console.log('mouse over link');
+                // console.log('mouse over link');
                 // The mouse moved over a link.
                 clearContextMenuItems();
 
