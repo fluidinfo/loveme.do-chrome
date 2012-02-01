@@ -1,4 +1,4 @@
-var port = chrome.extension.connect({name: 'linktext'});
+var port = chrome.extension.connect({name: 'context'});
 
 var createOverListener = function(node){
     // Return a function that will send the innerText of a node to our
@@ -49,3 +49,20 @@ body.addEventListener ('DOMNodeInserted', function(event){
         addListeners(event.target.getElementsByTagName('a'));
     }
 });
+
+var checkSelection = function(event){
+    var selection = window.getSelection().toString();
+    if (selection){
+        port.postMessage({
+            selection: selection
+        });
+    } else {
+        port.postMessage({
+            selectionCleared: true
+        });
+    }
+};
+
+document.addEventListener('mousedown', checkSelection, true);
+document.addEventListener('mouseup', checkSelection, true);
+document.addEventListener('keyup', checkSelection, true);

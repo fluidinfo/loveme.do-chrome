@@ -40,7 +40,7 @@ function refererFragment(info){
 }
 
 // --------------------------- Selection --------------------------
-
+/*
 chrome.contextMenus.create({
     'title' : 'Fluidinfo "%s"',
     'type' : 'normal',
@@ -49,6 +49,9 @@ chrome.contextMenus.create({
         openNewTab(info.selectionText.toLowerCase(), info, tab);
     }
 });
+*/
+
+var currentlySelectedText = undefined;
 
 // --------------------------- Page --------------------------
 
@@ -63,6 +66,7 @@ chrome.contextMenus.create({
 
 // --------------------------- Link --------------------------
 
+/*
 var linkMenuItem = chrome.contextMenus.create({
     'title' : 'Fluidinfo for this link',
     'type' : 'normal',
@@ -71,17 +75,21 @@ var linkMenuItem = chrome.contextMenus.create({
         openNewTab(info.linkUrl, info, tab);
     }
 });
+*/
 
-var updateLinkMenuItem = function(linkURL, docURL){
+var absoluteHref = function(linkURL, docURL){
     /*
-     * Update the context menu item that shows the URL of the current link.
-     * If linkURL does not specify a host, use the one in the document's URL
-     * (given in docURL).
+     * Turn a possibly relative linkURL (the href="" part of an <a> tag)
+     * into something absolute. If linkURL does not specify a host, use
+     * the one in the document's URL (given in docURL).
      */
     var url;
     if (linkRegex.test(linkURL)){
         // The link looks absolute (i.e., http:// or https:// or ftp://).
         url = linkURL;
+    }
+    else if (linkURL.slice(0, 7).toLowerCase() === 'mailto:'){
+        url = linkURL.split(':')[1].toLowerCase();
     }
     else {
         // A relative link. Prepend the current document protocol & host+port.
@@ -93,27 +101,36 @@ var updateLinkMenuItem = function(linkURL, docURL){
             url = parts[0] + '//' + parts[2] + '/' + linkURL;
         }
     }
+
+    return url;
+};
+
+/*
+var updateLinkMenuItem = function(url){
+    // Update the context menu item that shows the URL of the current link.
     chrome.contextMenus.update(linkMenuItem, {
         title: 'Fluidinfo "' + url + '"'
     });
 };
+*/
 
 // ---------------------- Link text context menu items ------------
 
-// linkTextMenuItems has attributes that are the text of current
+// contextMenuItems has attributes that are the text of current
 // context menu items. Its values are the meun item indices.
-var linkTextMenuItems = {};
-var linkTextMenuItemCount = 0;
+var contextMenuItems = {};
+var contextMenuItemCount = 0;
 
-var addLinkTextMenuItem = function(text){
+var addContextMenuItem = function(text, context){
+    context = context || 'link';
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
-    if (typeof linkTextMenuItems[text] === 'undefined'){
-        linkTextMenuItemCount++;
-        linkTextMenuItems[text] = chrome.contextMenus.create({
-            'title' : 'Fluidinfo (' + linkTextMenuItemCount + ')"' + text + '"',
+    if (typeof contextMenuItems[text] === 'undefined'){
+        contextMenuItemCount++;
+        contextMenuItems[text] = chrome.contextMenus.create({
+            'title' : 'Fluidinfo (' + contextMenuItemCount + ') "' + text + '"',
             'type' : 'normal',
-            'contexts' : ['link'],
+            'contexts' : [context],
             'onclick' : function(info, tab){
                 openNewTab(text, info, tab);
             }
@@ -121,14 +138,24 @@ var addLinkTextMenuItem = function(text){
     }
 };
 
-var clearLinkTextMenuItems = function(){
-    for (text in linkTextMenuItems){
-        if (typeof linkTextMenuItems[text] !== 'undefined'){
-            chrome.contextMenus.remove(linkTextMenuItems[text]);
+var removeContextMenuItem = function(text){
+    // Remove (possibly truncated) 'text' from the context menu, if present.
+    text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
+    if (typeof contextMenuItems[text] !== 'undefined'){
+        contextMenuItemCount--;
+        chrome.contextMenus.remove(contextMenuItems[text]);
+        delete contextMenuItems[text];
+    }
+};
+
+var clearContextMenuItems = function(){
+    for (text in contextMenuItems){
+        if (typeof contextMenuItems[text] !== 'undefined'){
+            chrome.contextMenus.remove(contextMenuItems[text]);
         }
     }
-    linkTextMenuItems = {};
-    linkTextMenuItemCount = 0;
+    contextMenuItems = {};
+    contextMenuItemCount = 0;
 };
 
 
@@ -136,33 +163,47 @@ var clearLinkTextMenuItems = function(){
 // update our various link context menu items.
 
 chrome.extension.onConnect.addListener(function(port){
-    if (port.name === 'linktext'){
+    if (port.name === 'context'){
         port.onMessage.addListener(function(msg){
-            if (msg.mouseout){
+            if (typeof msg.selection !== 'undefined'){
+                console.log('selected "' + msg.selection + '".');
+                currentlySelectedText = msg.selection;
+                addContextMenuItem(currentlySelectedText, 'selection');
+            }
+            else if (typeof msg.selectionCleared !== 'undefined'){
+                if (currentlySelectedText !== undefined){
+                    removeContextMenuItem(currentlySelectedText);
+                    currentlySelectedText = undefined;
+                    console.log('selection cleared');
+                }
+            }
+            else if (msg.mouseout){
                 // The mouse moved off a link so clear all link menus.
-                clearLinkTextMenuItems();
+                clearContextMenuItems();
             }
             else {
                 // The mouse moved over a link.
-                clearLinkTextMenuItems();
+                clearContextMenuItems();
 
                 // There are <a> tags with no href in them.
                 if (msg.linkURL){
-                    updateLinkMenuItem(msg.linkURL, msg.docURL);
+                    var url = absoluteHref(msg.linkURL, msg.docURL);
+                    addContextMenuItem(url);
+                    // updateLinkMenuItem(msg.linkURL, msg.docURL);
                 }
 
                 // And there are <a> tags with no text in them.
                 if (msg.text){
-                    addLinkTextMenuItem(msg.text);
+                    addContextMenuItem(msg.text);
                     var lower = msg.text.toLowerCase();
-                    addLinkTextMenuItem(lower);
+                    addContextMenuItem(lower);
 
                     // Check to see if we should add an @name menu item.
                     if (lower.charAt(0) !== '@' && lower.length <= 20 &&
                         possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.docURL)){
                         // We need an @name menu item. So update the existing one
                         // or create a new one.
-                        addLinkTextMenuItem('@' + msg.text.toLowerCase());
+                        addContextMenuItem('@' + msg.text.toLowerCase());
                     }
                 }
             }
@@ -174,7 +215,7 @@ chrome.extension.onConnect.addListener(function(port){
 // --------------------------- Image --------------------------
 
 chrome.contextMenus.create({
-    'title' : 'Fluidinfo for this image',
+    'title' : 'Fluidinfo for the URL of this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : function(info, tab){
