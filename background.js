@@ -178,10 +178,12 @@ chrome.extension.onConnect.addListener(function(port){
                 }
             }
             else if (msg.mouseout){
+                console.log('mouse out');
                 // The mouse moved off a link so clear all link menus.
                 clearContextMenuItems();
             }
             else {
+                console.log('mouse over link');
                 // The mouse moved over a link.
                 clearContextMenuItems();
 

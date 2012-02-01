@@ -7,6 +7,10 @@ var createOverListener = function(node){
     return function(){
         // Send the link text, trimmed of leading/trailing whitespace and
         // also the URL of the page.
+console.log('LISTENER sending:');
+console.log('  text: ' + node.innerText.replace(/^\s+|\s+$/g, ''));
+console.log('  linkURL: ' + node.getAttribute('href'));
+console.log('  docURL: ' + document.location.toString().toLowerCase());
         port.postMessage({
             text: node.innerText.replace(/^\s+|\s+$/g, ''),
             linkURL: node.getAttribute('href'),
