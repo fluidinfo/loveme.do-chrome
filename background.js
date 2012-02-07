@@ -1,6 +1,9 @@
 var base = 'http://fluidinfo.com/about/';
-var product = 'Fluidinfo';
 var defaultAbout = '@fluidinfo';
+
+var twitterURLRegex = /^https?:\/\/twitter.com/;
+var possibleAtNameRegex = /^\w+$/;
+var linkRegex = /^\w+:\/\//;
 
 // ----------------- Utility functions for context menus -----------------
 
@@ -36,21 +39,10 @@ function refererFragment(info){
   return info.pageUrl ? 'url=' + encodeURIComponent(info.pageUrl) : '';
 }
 
-// --------------------------- Selection --------------------------
-
-chrome.contextMenus.create({
-    'title' : product + ' for "%s"',
-    'type' : 'normal',
-    'contexts' : ['selection'],
-    'onclick' : function(info, tab){
-        openNewTab(info.selectionText.toLowerCase(), info, tab);
-    }
-});
-
 // --------------------------- Page --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this page',
+    'title' : 'Fluidinfo for this page',
     'type' : 'normal',
     'contexts' : ['page'],
     'onclick' : function(info, tab){
@@ -58,75 +50,120 @@ chrome.contextMenus.create({
     }
 });
 
-// --------------------------- Link --------------------------
 
-chrome.contextMenus.create({
-    'title' : product + ' for this link',
-    'type' : 'normal',
-    'contexts' : ['link'],
-    'onclick' : function(info, tab){
-        openNewTab(info.linkUrl, info, tab);
+var absoluteHref = function(linkURL, docURL){
+    /*
+     * Turn a possibly relative linkURL (the href="" part of an <a> tag)
+     * into something absolute. If linkURL does not specify a host, use
+     * the one in the document's URL (given in docURL).
+     */
+    var url;
+    if (linkRegex.test(linkURL)){
+        // The link looks absolute (i.e., http:// or https:// or ftp://).
+        url = linkURL;
     }
-});
-
-// --------------------------- Link Text ---------------------
-
-// This value will be overwritten each time the user moves over a link, so
-// the initial value is just a throwaway.
-var currentLinkText = '@fludidinfo';
-
-var linkTextMenuItem = chrome.contextMenus.create({
-    'title' : product + ' for link text',
-    'type' : 'normal',
-    'contexts' : ['link'],
-    'onclick' : function(info, tab){
-        openNewTab(currentLinkText, info, tab);
+    else if (linkURL.slice(0, 7).toLowerCase() === 'mailto:'){
+        url = linkURL.split(':')[1].toLowerCase();
     }
-});
-
-// The current lowercase value, and the value of the lowercase menu item, if any.
-var currentLowercaseLinkText = '@fludidinfo';
-var lowercaseLinkTextMenuItem;
-
-var createLowerCaseLinkTextMenuItem = function(text){
-    return chrome.contextMenus.create({
-        'title' : product + ' for "' + text + '"',
-        'type' : 'normal',
-        'contexts' : ['link'],
-        'onclick' : function(info, tab){
-            openNewTab(currentLowercaseLinkText, info, tab);
+    else {
+        // A relative link. Prepend the current document protocol & host+port.
+        var parts = docURL.split('/');
+        if (linkURL.charAt(0) === '/'){
+            url = parts[0] + '//' + parts[2] + linkURL;
         }
-    });
+        else {
+            url = parts[0] + '//' + parts[2] + '/' + linkURL;
+        }
+    }
+
+    return url;
 };
 
-// Listen for incoming messages with new link text, and update our currentLinkText
-// variable as well as the context menu title for the link text. Add a context menu
-// item for the lowercase string too, if it's not the same as the link text.
+
+// ---------------------- Link text context menu items ------------
+
+// contextMenuItems has attributes that are the text of current
+// context menu items. Its values are objects with two attributes,
+// 'context' (either 'selection' or 'link') and 'menuItem', the menu
+// item index returned by chrome.contextMenus.create.
+var contextMenuItems = {};
+
+var addContextMenuItem = function(text, context){
+    // Add (possibly truncated) 'text' to the context menu, if not already present.
+    text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
+    if (typeof contextMenuItems[text] === 'undefined'){
+        var menuItem = chrome.contextMenus.create({
+            'title' : 'Fluidinfo "' + text + '"',
+            'type' : 'normal',
+            'contexts' : [context],
+            'onclick' : function(info, tab){
+                openNewTab(text, info, tab);
+            }
+        });
+        contextMenuItems[text] = {
+            context: context,
+            menuItem: menuItem
+        };
+    }
+};
+
+var removeContextMenuItemsByContext = function(context){
+    for (text in contextMenuItems){
+        if (typeof contextMenuItems[text] !== 'undefined' &&
+            contextMenuItems[text].context === context){
+            chrome.contextMenus.remove(contextMenuItems[text].menuItem);
+            delete contextMenuItems[text];
+        }
+    }
+};
+
+
+// Listen for incoming messages with events (link mouseover, link
+// mouseout, selection set/cleared), and update the context menu.
+
 chrome.extension.onConnect.addListener(function(port){
-    if (port.name === 'linktext'){
+    if (port.name === 'context'){
         port.onMessage.addListener(function(msg){
-            currentLinkText = msg.text;
-            chrome.contextMenus.update(linkTextMenuItem, {
-                title: product + ' for "' + currentLinkText + '"'});
-            var lower = currentLinkText.toLowerCase();
-            if (currentLinkText === lower){
-                // We don't need a lowercase menu item.
-                if (lowercaseLinkTextMenuItem !== undefined){
-                    chrome.contextMenus.remove(lowercaseLinkTextMenuItem);
-                    lowercaseLinkTextMenuItem = undefined;
+            if (typeof msg.selection !== 'undefined'){
+                removeContextMenuItemsByContext('selection');
+                addContextMenuItem(msg.selection, 'selection');
+            }
+            else if (msg.selectionCleared){
+                removeContextMenuItemsByContext('selection');
+            }
+            else if (msg.mouseout){
+                // The mouse moved off a link so clear all link-related context
+                // menu items.
+                removeContextMenuItemsByContext('link');
+            }
+            else if (msg.mouseover){
+                // The mouse moved over a new link. Remove existing link-related
+                // context menu items.
+                removeContextMenuItemsByContext('link');
+
+                // There are <a> tags with no href in them.
+                if (msg.linkURL){
+                    var url = absoluteHref(msg.linkURL, msg.docURL);
+                    addContextMenuItem(url, 'link');
+                    // updateLinkMenuItem(msg.linkURL, msg.docURL);
+                }
+
+                // And there are <a> tags with no text in them.
+                if (msg.text){
+                    addContextMenuItem(msg.text, 'link');
+                    var lower = msg.text.toLowerCase();
+                    addContextMenuItem(lower, 'link');
+
+                    // Check to see if we should add an @name menu item.
+                    if (lower.charAt(0) !== '@' && lower.length <= 20 &&
+                        possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.docURL)){
+                        addContextMenuItem('@' + lower, 'link');
+                    }
                 }
             }
             else {
-                // We need a lower case menu item. So update the existing one
-                // or create a new one.
-                currentLowercaseLinkText = lower;
-                if (lowercaseLinkTextMenuItem === undefined){
-                    lowercaseLinkTextMenuItem = createLowerCaseLinkTextMenuItem(currentLowercaseLinkText);
-                }
-                else {
-                    chrome.contextMenus.update(lowercaseLinkTextMenuItem, {
-                        title: product + ' for "' + currentLowercaseLinkText + '"'});
-                }
+                console.log('Unrecognized message sent by content script:');
+                console.log(msg);
             }
         });
     }
@@ -136,7 +173,7 @@ chrome.extension.onConnect.addListener(function(port){
 // --------------------------- Image --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this image',
+    'title' : 'Fluidinfo for the URL of this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : function(info, tab){
@@ -147,7 +184,7 @@ chrome.contextMenus.create({
 // --------------------------- Frame --------------------------
 
 chrome.contextMenus.create({
-    'title' : product + ' for this frame',
+    'title' : 'Fluidinfo for this frame',
     'type' : 'normal',
     'contexts' : ['frame'],
     'onclick' : function(info, tab){
