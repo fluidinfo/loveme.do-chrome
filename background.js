@@ -170,7 +170,7 @@ chrome.extension.onConnect.addListener(function(port){
                 currentlySelectedText = msg.selection;
                 addContextMenuItem(currentlySelectedText, 'selection');
             }
-            else if (typeof msg.selectionCleared !== 'undefined'){
+            else if (msg.selectionCleared){
                 if (currentlySelectedText !== undefined){
                     removeContextMenuItem(currentlySelectedText);
                     currentlySelectedText = undefined;
