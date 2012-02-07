@@ -39,20 +39,6 @@ function refererFragment(info){
   return info.pageUrl ? 'url=' + encodeURIComponent(info.pageUrl) : '';
 }
 
-// --------------------------- Selection --------------------------
-/*
-chrome.contextMenus.create({
-    'title' : 'Fluidinfo "%s"',
-    'type' : 'normal',
-    'contexts' : ['selection'],
-    'onclick' : function(info, tab){
-        openNewTab(info.selectionText.toLowerCase(), info, tab);
-    }
-});
-*/
-
-var currentlySelectedText = undefined;
-
 // --------------------------- Page --------------------------
 
 chrome.contextMenus.create({
@@ -64,18 +50,6 @@ chrome.contextMenus.create({
     }
 });
 
-// --------------------------- Link --------------------------
-
-/*
-var linkMenuItem = chrome.contextMenus.create({
-    'title' : 'Fluidinfo for this link',
-    'type' : 'normal',
-    'contexts' : ['link'],
-    'onclick' : function(info, tab){
-        openNewTab(info.linkUrl, info, tab);
-    }
-});
-*/
 
 var absoluteHref = function(linkURL, docURL){
     /*
@@ -105,29 +79,21 @@ var absoluteHref = function(linkURL, docURL){
     return url;
 };
 
-/*
-var updateLinkMenuItem = function(url){
-    // Update the context menu item that shows the URL of the current link.
-    chrome.contextMenus.update(linkMenuItem, {
-        title: 'Fluidinfo "' + url + '"'
-    });
-};
-*/
 
 // ---------------------- Link text context menu items ------------
 
 // contextMenuItems has attributes that are the text of current
-// context menu items. Its values are the meun item indices.
+// context menu items. Its values are objects with two attributes,
+// 'context' (either 'selection' or 'link') and 'menuItem', the menu
+// item index returned by chrome.contextMenus.create.
 var contextMenuItems = {};
 var contextMenuItemCount = 0;
 
 var addContextMenuItem = function(text, context){
-    context = context || 'link';
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
     if (typeof contextMenuItems[text] === 'undefined'){
-        contextMenuItemCount++;
-        contextMenuItems[text] = chrome.contextMenus.create({
+        var menuItem = chrome.contextMenus.create({
             'title' : 'Fluidinfo (' + contextMenuItemCount + ') "' + text + '"',
             'type' : 'normal',
             'contexts' : [context],
@@ -135,79 +101,71 @@ var addContextMenuItem = function(text, context){
                 openNewTab(text, info, tab);
             }
         });
+        contextMenuItems[text] = {
+            context: context,
+            menuItem: menuItem
+        };
+        contextMenuItemCount++;
     }
 };
 
-var removeContextMenuItem = function(text){
-    // Remove (possibly truncated) 'text' from the context menu, if present.
-    text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
-    if (typeof contextMenuItems[text] !== 'undefined'){
-        contextMenuItemCount--;
-        chrome.contextMenus.remove(contextMenuItems[text]);
-        delete contextMenuItems[text];
-    }
-};
-
-var clearContextMenuItems = function(){
+var removeContextMenuItemsByContext = function(context){
     for (text in contextMenuItems){
-        if (typeof contextMenuItems[text] !== 'undefined'){
-            chrome.contextMenus.remove(contextMenuItems[text]);
+        if (typeof contextMenuItems[text] !== 'undefined' &&
+            contextMenuItems[text].context === context){
+            chrome.contextMenus.remove(contextMenuItems[text].menuItem);
+            delete contextMenuItems[text];
+            contextMenuItemCount--;
         }
     }
-    contextMenuItems = {};
-    contextMenuItemCount = 0;
 };
 
 
-// Listen for incoming messages with link events (mouseover, mouseout), and
-// update our various link context menu items.
+// Listen for incoming messages with events (link mouseover, link
+// mouseout, selection set/cleared), and update the context menu.
 
 chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'context'){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
-                // console.log('selected "' + msg.selection + '".');
-                currentlySelectedText = msg.selection;
-                addContextMenuItem(currentlySelectedText, 'selection');
+                addContextMenuItem(msg.selection, 'selection');
             }
             else if (msg.selectionCleared){
-                if (currentlySelectedText !== undefined){
-                    removeContextMenuItem(currentlySelectedText);
-                    currentlySelectedText = undefined;
-                    // console.log('selection cleared');
-                }
+                removeContextMenuItemsByContext('selection');
             }
             else if (msg.mouseout){
-                // console.log('mouse out');
-                // The mouse moved off a link so clear all link menus.
-                clearContextMenuItems();
+                // The mouse moved off a link so clear all link-related context
+                // menu items.
+                removeContextMenuItemsByContext('link');
             }
-            else {
-                // console.log('mouse over link');
-                // The mouse moved over a link.
-                clearContextMenuItems();
+            else if (msg.mouseover){
+                // The mouse moved over a new link. Remove existing link-related
+                // context menu items.
+                removeContextMenuItemsByContext('link');
 
                 // There are <a> tags with no href in them.
                 if (msg.linkURL){
                     var url = absoluteHref(msg.linkURL, msg.docURL);
-                    addContextMenuItem(url);
+                    addContextMenuItem(url, 'link');
                     // updateLinkMenuItem(msg.linkURL, msg.docURL);
                 }
 
                 // And there are <a> tags with no text in them.
                 if (msg.text){
-                    addContextMenuItem(msg.text);
+                    addContextMenuItem(msg.text, 'link');
                     var lower = msg.text.toLowerCase();
-                    addContextMenuItem(lower);
+                    addContextMenuItem(lower, 'link');
 
                     // Check to see if we should add an @name menu item.
                     if (lower.charAt(0) !== '@' && lower.length <= 20 &&
                         possibleAtNameRegex.test(lower) && twitterURLRegex.test(msg.docURL)){
-                        // We need an @name menu item. So update the existing one
-                        // or create a new one.
-                        addContextMenuItem('@' + msg.text.toLowerCase());
+                        addContextMenuItem('@' + lower, 'link');
                     }
                 }
+            }
+            else {
+                console.log('Unrecognized message sent by content script:');
+                console.log(msg);
             }
         });
     }

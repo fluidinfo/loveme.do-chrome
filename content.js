@@ -14,9 +14,10 @@ var createOverListener = function(node){
          console.log('  docURL: ' + document.location.toString().toLowerCase());
          */
         port.postMessage({
-            text: node.innerText.replace(/^\s+|\s+$/g, ''),
+            docURL: document.location.toString().toLowerCase(),
             linkURL: node.getAttribute('href'),
-            docURL: document.location.toString().toLowerCase()
+            mouseover: true,
+            text: node.innerText.replace(/^\s+|\s+$/g, '')
         });
         return true;
     };
