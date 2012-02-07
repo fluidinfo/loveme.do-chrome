@@ -87,14 +87,13 @@ var absoluteHref = function(linkURL, docURL){
 // 'context' (either 'selection' or 'link') and 'menuItem', the menu
 // item index returned by chrome.contextMenus.create.
 var contextMenuItems = {};
-var contextMenuItemCount = 0;
 
 var addContextMenuItem = function(text, context){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
     if (typeof contextMenuItems[text] === 'undefined'){
         var menuItem = chrome.contextMenus.create({
-            'title' : 'Fluidinfo (' + contextMenuItemCount + ') "' + text + '"',
+            'title' : 'Fluidinfo "' + text + '"',
             'type' : 'normal',
             'contexts' : [context],
             'onclick' : function(info, tab){
@@ -105,7 +104,6 @@ var addContextMenuItem = function(text, context){
             context: context,
             menuItem: menuItem
         };
-        contextMenuItemCount++;
     }
 };
 
@@ -115,7 +113,6 @@ var removeContextMenuItemsByContext = function(context){
             contextMenuItems[text].context === context){
             chrome.contextMenus.remove(contextMenuItems[text].menuItem);
             delete contextMenuItems[text];
-            contextMenuItemCount--;
         }
     }
 };
