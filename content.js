@@ -19,7 +19,6 @@ var createOverListener = function(node){
             mouseover: true,
             text: node.innerText.replace(/^\s+|\s+$/g, '')
         });
-        checkSelection();
         return true;
     };
 };
@@ -32,7 +31,6 @@ var createOutListener = function(node){
         port.postMessage({
             mouseout: true
         });
-        checkSelection();
         return true;
     };
 };
