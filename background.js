@@ -92,6 +92,10 @@ var addContextMenuItem = function(text, context){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
     if (typeof contextMenuItems[text] === 'undefined'){
+        if (context === 'selection'){
+            // There can only be one selection text in the context menu.
+            removeContextMenuItemsByContext('selection');
+        }
         var menuItem = chrome.contextMenus.create({
             'title' : 'Fluidinfo "' + text + '"',
             'type' : 'normal',
