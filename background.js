@@ -126,7 +126,9 @@ chrome.extension.onConnect.addListener(function(port){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
                 removeContextMenuItemsByContext('selection');
+                // Offer mixed & lower case versions.
                 addContextMenuItem(msg.selection, 'selection');
+                addContextMenuItem(msg.selection.toLowerCase(), 'selection');
             }
             else if (msg.selectionCleared){
                 removeContextMenuItemsByContext('selection');
