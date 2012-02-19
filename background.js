@@ -196,6 +196,22 @@ chrome.contextMenus.create({
 
 // ------------------- Tagging (from the popup) ----------------
 
+var fluidinfoAPI;
+
+var setFluidinfoAPIFromLocalStorage = function(){
+    // Set the global fluidinfoAPI variable using credentials found in
+    // local storage, if possible. If credentials cannot be found, do
+    // nothing (callers can check fluidinfoAPI).
+    var username = localStorage.username;
+    var password = localStorage.password;
+    if (username && password){
+        fluidinfoAPI = fluidinfo({
+            username: username,
+            password: password
+        });
+    }
+};
+
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
         if (request.action === 'validate'){
@@ -208,11 +224,11 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var fi = fluidinfo({
+            fluidinfoAPI = fluidinfo({
                 username: username,
                 password: password
             });
-            fi.api.get({
+            fluidinfoAPI.api.get({
                 path: ['users', username],
                 onSuccess: function(response){
                     localStorage.username = username;
@@ -222,6 +238,7 @@ chrome.extension.onRequest.addListener(
                     });
                 },
                 onError: function(response){
+                    fluidinfoAPI = undefined;
                     sendResponse({
                         message: 'Authentication failed: ' + response.statusText + ' (status ' + response.status + ').',
                         success: false
@@ -230,19 +247,15 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'tag'){
-            var username = localStorage.username;
-            var password = localStorage.password;
-            if (!(username && password)){
+            setFluidinfoAPIFromLocalStorage();
+            if (fluidinfoAPI === undefined){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
                     success: false
                 });
                 return;
             }
-            var fi = fluidinfo({
-                username: username,
-                password: password
-            });
+            var username = localStorage.username;
             var values = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
@@ -251,7 +264,7 @@ chrome.extension.onRequest.addListener(
                     values[username + '/' + tagName] = tagValue;
                 }
             }
-            fi.update({
+            fluidinfoAPI.update({
                 where: 'fluiddb/about = "' + request.about + '"',
                 values: values,
                 onSuccess: function(response){
@@ -269,5 +282,225 @@ chrome.extension.onRequest.addListener(
                 }
             });
         }
+        else if (request.action === 'untag'){
+            setFluidinfoAPIFromLocalStorage();
+            if (fluidinfoAPI === undefined){
+                sendResponse({
+                    message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
+                    success: false
+                });
+                return;
+            }
+            var username = localStorage.username;
+            var tags = [];
+            for (var i = 0; i < request.tags.length; i++){
+                var tag = request.tags[i];
+                tags.push(username + '/' + tag);
+            }
+            fluidinfoAPI.del({
+                where: 'fluiddb/about = "' + request.about + '"',
+                tags: tags,
+                onSuccess: function(response){
+                    sendResponse({
+                        success: true
+                    });
+                },
+                onError: function(response){
+                    console.log('Fluidinfo API call failed:');
+                    console.log(response);
+                    sendResponse({
+                        message: 'Fluidinfo call failed: ' + response.statusText + ' (status ' + response.status + ').',
+                        success: false
+                    });
+                }
+            });
+        }
+        else if (request.action === 'getValues'){
+            console.log('in getValues call. tabId = ' + request.tabId);
+            console.log(request);
+            setFluidinfoAPIFromLocalStorage();
+            if (fluidinfoAPI === undefined){
+                sendResponse({
+                    message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
+                    success: false
+                });
+                return;
+            }
+
+            // Figure out what tags to retrieve, based on the list of tags we already
+            // know are on the object. This avoids asking Fluidinfo for things we
+            // already know don't exist.
+            var username = localStorage.username;
+            var tags = [];
+            for (var i = 0; i < request.tags.length; i++){
+                var tag = username + '/' + request.tags[i];
+                if (valuesCache[request.tabId].tagPaths[tag]){
+                    tags.push(tag);
+                }
+            }
+            console.log('in getValues call, valuesCache[request.tabId] is');
+            console.log(valuesCache[request.tabId]);
+            console.log('will fetch');
+            console.log(tags);
+
+            if (tags.length === 0){
+                // None of the wanted tags are on the object.
+                sendResponse({
+                    result: { data: {} },
+                    success: true,
+                    username: username
+                });
+            }
+            else {
+                valuesCache[request.tabId].valuesCache.get({
+                    onError: function(response){
+                        console.log('got tag values error, sending reply');
+                        sendResponse({
+                            message: 'Fluidinfo call failed: ' + response.statusText + ' (status ' + response.status + ').',
+                            success: false
+                        });
+                    },
+                    onSuccess: function(result){
+                        console.log('got tag values, sending reply');
+                        sendResponse({
+                            result: result,
+                            success: true,
+                            username: username
+                        });
+                    },
+                    tags: tags
+                });
+                console.log('in getValues call, call has been made.');
+                console.log(valuesCache[request.tabId]);
+            }
+        }
     }
 );
+
+// -------------------- Tag values for current tab's URL --------------------
+
+// valuesCache is keyed by tab id, values are objects with a tagValueHandler
+// (as returned by makeTagValueHandler) and a JS object holding the tag paths
+// on the object.
+var valuesCache = {};
+
+var createNotification = function(){
+    if (window.webkitNotifications){
+        return window.webkitNotifications.createHTMLNotification('notification.html');
+    }
+    else {
+        console.log("Notifications are not supported for this browser/OS version yet.");
+        return false;
+    }
+};
+
+var deleteValuesCacheForTab = function(tabId){
+    if (valuesCache[tabId] !== undefined){
+        console.log('DELETING values cache for tabId ' + tabId);
+        valuesCache[tabId].valuesCache.ignoreFutureResults();
+        delete valuesCache[tabId];
+    }
+};
+
+chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
+    deleteValuesCacheForTab(tabId);
+});
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+    if (fluidinfoAPI === undefined){
+        setFluidinfoAPIFromLocalStorage();
+        if (fluidinfoAPI === undefined){
+            console.log('Not fetching tags for URL. User is not logged in.');
+            return;
+        }
+    }
+    if (changeInfo.status === 'loading'){
+        var url = tab.url;
+        console.log('Loading ' + url);
+        console.log('Creating values cache for tabId ' + tabId);
+        deleteValuesCacheForTab(tabId);
+        valuesCache[tabId] = {
+            tagPaths: {}, // Will be filled in in onSuccess, below.
+            valuesCache: makeTagValueHandler({
+                about: url,
+                session: fluidinfoAPI
+            })
+        };
+
+        var onError = function(result){
+            console.log('Got error from Fluidinfo fetching tags for URL ' + url);
+            console.log(result);
+        };
+
+        var onSuccess = function(result){
+            var username = localStorage.username;
+            var tagPaths = result.data.tagPaths;
+
+            console.log('Received tag paths for ' + url);
+            console.log(tagPaths);
+            var wantedTags = [];
+            for (var i = 0; i < tagPaths.length; i++){
+                var tagPath = tagPaths[i];
+                valuesCache[tabId].tagPaths[tagPath] = true;
+                var namespace = tagPath.slice(0, tagPath.indexOf('/'));
+                if (namespace === username){
+                    // This is one of the user's tags.
+                    wantedTags.push(tagPath);
+                }
+            }
+
+            if (wantedTags.length > 0){
+                console.log('Fetching user (' + username + ') tags:');
+                console.log(wantedTags);
+                valuesCache[tabId].valuesCache.get({
+                    onSuccess: function(){
+                        chrome.browserAction.setBadgeText({
+                            tabId: tabId,
+                            text: '' + wantedTags.length
+                        });
+                        chrome.browserAction.setBadgeBackgroundColor({
+                            color: [255, 0, 0, 255],
+                            tabId: tabId
+                        });
+                        console.log('User tag values loaded.');
+                        var notification = createNotification(wantedTags);
+                        notification.show();
+                        var hide = function(){
+                            notification.cancel();
+                        };
+                        // setTimeout(hide, 10000);
+                        console.log('calling notification');
+                        setTimeout(function(){
+                            chrome.extension.getViews({type: 'notification'}).forEach(function(win){
+                                win.populate({
+                                    url: url,
+                                    valuesCache: valuesCache[tabId].valuesCache,
+                                    wantedTags: wantedTags
+                                });
+                            });
+                        }, 1000);
+                    },
+                    tags: wantedTags
+                });
+            }
+            else {
+                console.log('User (' + username + ') has no tags on URL.');
+                chrome.browserAction.setBadgeText({
+                    tabId: tabId,
+                    text: ''
+                });
+                chrome.browserAction.setBadgeBackgroundColor({
+                    color: [0, 0, 0, 255],
+                    tabId: tabId
+                });
+            }
+        };
+
+        // Pull back tag paths on the object for the current URL.
+        fluidinfoAPI.api.get({
+            path: ['about', url],
+            onError: onError,
+            onSuccess: onSuccess
+        });
+    }
+});

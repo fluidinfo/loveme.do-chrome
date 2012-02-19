@@ -1,0 +1,85 @@
+body{
+    font-family: 'Varela Round',Helvetica,Arial,sans-serif;
+}
+
+a {
+    color: #08C;
+    text-decoration: none;
+}
+
+#logo {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+#fi_notification_intro {
+    margin-top: 0px;
+    padding-top: 0px;
+}
+
+#fi_url_external {
+    margin-top: 0px;
+    padding-top: 0px;
+    vertical-align: top;
+}
+
+#fi_yourtags {
+    margin-bottom: 10px;
+}
+
+.tagItem {
+    margin-bottom: 4px;
+    position:relative;
+}
+
+.tagHeader {
+    margin-top:8px;
+    margin-bottom: 8px;
+}
+
+.tagItem p {
+    margin-bottom: 0;
+}
+
+.tagValueList {
+    margin: 0 0 0 0;
+}
+
+.tagAndValue {
+    clear: both;
+}
+
+.tagAndValue li {
+    /* list-style-type: none; */
+}
+
+.tagDisplay {
+    padding: 8px;
+    border: 1px solid #6fd5fa;
+    -webkit-border-radius: 13px;
+    -webkit-border-top-right-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius: 13px;
+    -moz-border-radius-topright: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-radius: 13px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    overflow:auto;
+}
+
+.tagBullet{
+    position:relative;
+    top:1px;
+    margin-right:7px;
+}
+
+/* To run booleans and numbers on a single line */
+.tagName{
+    margin-top:-2px;
+    padding-right:4px;
+    padding-bottom: 4px;
+    font-weight: bold;
+    padding-right: 8px;
+}
