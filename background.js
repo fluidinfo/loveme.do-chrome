@@ -457,6 +457,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     if (changeInfo.status === 'loading'){
         var url = tab.url;
         deleteValuesCacheForTab(tabId);
+        deleteNotificationForTab(tabId);
         valuesCache[tabId] = {
             tagPaths: {}, // Will be filled in in onSuccess, below.
             valuesCache: makeTagValueHandler({
