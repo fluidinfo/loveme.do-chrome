@@ -5,6 +5,38 @@ var twitterURLRegex = /^https?:\/\/twitter.com/;
 var possibleAtNameRegex = /^\w+$/;
 var linkRegex = /^\w+:\/\//;
 
+// -----------------  Omnibox -----------------
+
+chrome.omnibox.setDefaultSuggestion({
+    description: 'Jump to "%s" in Fluidinfo'
+});
+
+chrome.omnibox.onInputEntered.addListener(function(text){
+    chrome.tabs.getSelected(null, function(tab){
+        chrome.tabs.update(tab.id, {
+            url: makeURL(text)
+        });
+    });
+});
+
+chrome.omnibox.onInputChanged.addListener(function(text, suggest){
+    var username = localStorage.username;
+
+    if (username &&
+            ((text === username.slice(0, text.length)) ||
+             (text.charAt(0) === '@' && text.slice(1) === username.slice(0, text.length - 1)))){
+        // The user may be typing their username or @username, so suggest it.
+        var prefix = text.slice(text.charAt(0) === '@' ? 1 : 0);
+        suggest([
+            {
+                content: makeURL('@' + username),
+                description: ('Jump to <match>@' + prefix + '</match>' +
+                              username.slice(prefix.length) + ' in Fluidinfo')
+            }
+        ]);
+    }
+});
+
 // ----------------- Utility functions for context menus -----------------
 
 function openNewTab(about, info, tab){
@@ -22,7 +54,7 @@ function makeURL(about, info){
    * Generate an object browser URL given an about value and an info
    * object containing information about the user event.
    */
-  var fragment = refererFragment(info);
+  var fragment = info ? refererFragment(info) : '';
   if (fragment === ''){
     return base + '#!/' + encodeURIComponent(about);
   }
