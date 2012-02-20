@@ -1,3 +1,5 @@
+var existingValues;
+
 function trim(s){
     return s.replace(/^\s+|\s+$/g, '');
 }
@@ -70,11 +72,13 @@ function clearStatus(msg){
     s.style.visibility = 'hidden';
 }
 
-function save(url, callback){
+function save(tab, callback){
     var ok = true;
     var callbackCalled = false;
     var fluidinfoCallsMade = 0;
     var fluidinfoCallsFinished = 0;
+    var setValue;
+    var deleteValue;
 
     clearStatus();
 
@@ -100,9 +104,9 @@ function save(url, callback){
         tagNamesAndValues[tagName1.value] = parseFluidinfoValue(tagValue.value);
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: tagNamesAndValues,
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: tagNamesAndValues
         }, function(response) {
             if (response.success){
                 tagName1.value = '';
@@ -147,9 +151,9 @@ function save(url, callback){
         if (allKeywordsValid && numberOfKeywords){
             fluidinfoCallsMade++;
             chrome.extension.sendRequest({
-                action: 'tag',
-                tagNamesAndValues: tagNamesAndValues,
-                about: url
+                action: 'tag-current-url',
+                tabId: tab.id,
+                tagNamesAndValues: tagNamesAndValues
             }, function(response){
                 if (response.success){
                     // keywordsField.value = '';
@@ -165,17 +169,57 @@ function save(url, callback){
     }
 
     // Read this URL later?
-    var readLater = document.getElementById('readLater');
-    if (readLater.checked){
+    var readLater = document.getElementById('read-later');
+    setValue = false;
+    deleteValue = false;
+
+    if (existingValues['read-later'] !== undefined){
+        // There was already a value.
+        if (existingValues['read-later'] !== readLater.checked){
+            // And the value has changed.
+            if (readLater.checked){
+                setValue = true;
+            }
+            else {
+                deleteValue = true;
+            }
+        }
+    }
+    else {
+        // No existing value.
+        setValue = readLater.checked;
+    }
+
+    if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { 'read-later': true },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { 'read-later': true }
         }, function(response) {
             if (response.success){
-                readLater.checked = false;
+                existingValues['read-later'] = true;
+                readLater.checked = true;
                 status('Read-later tag saved successfully.');
+            }
+            else {
+                ok = false;
+                status(response.message);
+            }
+            maybeRunCallback();
+        });
+    }
+    else if (deleteValue){
+        fluidinfoCallsMade++;
+        chrome.extension.sendRequest({
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['read-later']
+        }, function(response) {
+            if (response.success){
+                delete existingValues['read-later'];
+                readLater.checked = false;
+                status('Read-later tag removed successfully.');
             }
             else {
                 ok = false;
@@ -187,16 +231,56 @@ function save(url, callback){
 
     // Like this URL?
     var like = document.getElementById('like');
-    if (like.checked){
+    setValue = false;
+    deleteValue = false;
+
+    if (existingValues.like !== undefined){
+        // There was already a value.
+        if (existingValues.like !== like.checked){
+            // And the value has changed.
+            if (like.checked){
+                setValue = true;
+            }
+            else {
+                deleteValue = true;
+            }
+        }
+    }
+    else {
+        // No existing value.
+        setValue = like.checked;
+    }
+
+    if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { like: true },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { 'like': true }
         }, function(response) {
             if (response.success){
+                existingValues.like = true;
+                like.checked = true;
+                status('like tag saved successfully.');
+            }
+            else {
+                ok = false;
+                status(response.message);
+            }
+            maybeRunCallback();
+        });
+    }
+    else if (deleteValue){
+        fluidinfoCallsMade++;
+        chrome.extension.sendRequest({
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['like']
+        }, function(response) {
+            if (response.success){
+                delete existingValues.like;
                 like.checked = false;
-                status('Like tag saved successfully.');
+                status('like tag removed successfully.');
             }
             else {
                 ok = false;
@@ -208,16 +292,55 @@ function save(url, callback){
 
     // Rate this URL.
     var rating = document.getElementById('rating');
-    if (rating.value){
+    setValue = false;
+    deleteValue = false;
+
+    if (existingValues.rating !== undefined){
+        // There was already a value.
+        if (existingValues.rating !== rating.value){
+            // And the value has changed.
+            if (rating.value){
+                setValue = true;
+            }
+            else {
+                deleteValue = true;
+            }
+        }
+    }
+    else {
+        // No existing value.
+        setValue = rating.value;
+    }
+
+    if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) }
         }, function(response) {
             if (response.success){
-                rating.value = '';
+                existingValues.rating = rating.value;
                 status('Rating saved successfully.');
+            }
+            else {
+                ok = false;
+                status(response.message);
+            }
+            maybeRunCallback();
+        });
+    }
+    else if (deleteValue){
+        fluidinfoCallsMade++;
+        chrome.extension.sendRequest({
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['rating']
+        }, function(response) {
+            if (response.success){
+                delete existingValues.rating;
+                rating.value = '';
+                status('rating removed successfully.');
             }
             else {
                 ok = false;
@@ -229,16 +352,55 @@ function save(url, callback){
 
     // Comment on this URL.
     var comment = document.getElementById('comment');
-    if (comment.value){
+    setValue = false;
+    deleteValue = false;
+
+    if (existingValues.comment !== undefined){
+        // There was already a value.
+        if (existingValues.comment !== comment.value){
+            // And the value has changed.
+            if (comment.value){
+                setValue = true;
+            }
+            else {
+                deleteValue = true;
+            }
+        }
+    }
+    else {
+        // No existing value.
+        setValue = comment.value;
+    }
+
+    if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { comment: comment.value },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { comment: comment.value }
         }, function(response) {
             if (response.success){
-                comment.value = '';
+                existingValues.comment = comment.value;
                 status('Comment saved successfully.');
+            }
+            else {
+                ok = false;
+                status(response.message);
+            }
+            maybeRunCallback();
+        });
+    }
+    else if (deleteValue){
+        fluidinfoCallsMade++;
+        chrome.extension.sendRequest({
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['comment']
+        }, function(response) {
+            if (response.success){
+                delete existingValues.comment;
+                comment.value = '';
+                status('comment removed successfully.');
             }
             else {
                 ok = false;
@@ -253,7 +415,7 @@ function save(url, callback){
     var about = document.getElementById('about');
     if (tagName2.value && about.value){
         var tagNamesAndValues = {};
-        tagNamesAndValues[tagName2.value] = url;
+        tagNamesAndValues[tagName2.value] = tab.url;
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
             action: 'tag',
@@ -297,20 +459,58 @@ function save(url, callback){
 
 function fi_init(){
     chrome.tabs.getSelected(null, function(tab){
-        document.getElementById('_fi_save').onclick = function(){
-            save(tab.url, function(status){
-                if (status){
-                    chrome.tabs.update(tab.id, {selected: true});
-                }
-            });
-            return false;
-        };
+
         document.getElementById('_fi_cancel').onclick = function(){
+            // Select the current tab (which has the
+            // side-effect of closing the popup).
             chrome.tabs.update(tab.id, {selected: true});
             return false;
         };
 
+        // Update the URL link at the top of the popup.
         var a = document.getElementById('_fi_link');
         a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(tab.url);
+
+        // Populate the popup with known values of certain simple tags, if those
+        // tags have values already on the Fluidinfo object for the URL.
+        var tags = [ 'comment', 'like', 'rating', 'read-later' ];
+        chrome.extension.sendRequest({
+            action: 'get-values-for-current-url',
+            tags: tags,
+            tabId: tab.id
+        }, function(response){
+            if (response.success){
+                existingValues = {};
+                for (var i = 0; i < tags.length; i++){
+                    var tag = tags[i];
+                    var value = response.result.data[response.username + '/' + tag];
+                    if (value !== undefined){
+                        existingValues[tag] = value;
+                        if (tag === 'comment' || tag === 'rating'){
+                            document.getElementById(tag).value = value;
+                        }
+                        else {
+                            document.getElementById(tag).checked = value;
+                        }
+                    }
+                }
+
+                // Set up the save function, providing it with any existing values.
+                document.getElementById('_fi_save').onclick = function(){
+                    save(tab, function(status){
+                        if (status){
+                            // Select the current tab (which has the
+                            // side-effect of closing the popup).
+                            chrome.tabs.update(tab.id, {selected: true});
+                        }
+                    });
+                    return false;
+                };
+            }
+            else {
+                // Not logged in, most likely.
+                status(response.message);
+            }
+        });
     });
 }
