@@ -27,7 +27,7 @@ chrome.omnibox.onInputChanged.addListener(function(text, suggest){
         var prefix = text.slice(text.charAt(0) === '@' ? 1 : 0);
         suggest([
             {
-                content: makeURL('@' + username),
+                content: '@' + username,
                 description: ('Jump to <match>@' + prefix + '</match>' +
                               username.slice(prefix.length) + ' in Fluidinfo')
             }
