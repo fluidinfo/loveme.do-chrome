@@ -1,18 +1,20 @@
 {
   "name": "Fluidinfo",
-  "version": "1.1.310",
-  "description": "Use Fluidinfo to tag URLs in interesting ways, and jump to Fluidinfo pages for them and for text selections.",
+  "version": "1.1.311",
+  "description": "Add your info to URLs, and jump to Fluidinfo pages for them and for selected text.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
   "options_page": "options.html",
   "permissions": [
     "<all_urls>",
     "contextMenus",
+    "notifications",
     "tabs",
     "unlimitedStorage"
   ],
   "icons" : {
     "16" : "fi_16.png",
+    "32" : "fi_32.png",
     "48" : "fi_48.png",
     "64" : "fi_64.png",
     "128" : "fi_128.png"
