@@ -443,6 +443,7 @@ var deleteNotificationForTab = function(tabId){
 
 chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
     deleteValuesCacheForTab(tabId);
+    deleteNotificationForTab(tabId);
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
