@@ -118,8 +118,6 @@ var makeTagValueHandler = function(options){
              *  functions of all the waiters whose tags have all been fetched.
              */
             return function(result){
-                console.log('Got result from Fluidinfo:');
-                console.log(result);
                 // Do nothing if we've moved on.
                 if (handler.ignoring){
                     return;
@@ -174,8 +172,6 @@ var makeTagValueHandler = function(options){
              * were just unable to fetch.
              */
             return function(result){
-                console.log('Got error from Fluidinfo:');
-                console.log(result);
                 // Do nothing if we've moved on.
                 if (handler.ignoring){
                     return;
@@ -257,17 +253,14 @@ var makeTagValueHandler = function(options){
 
     handler.set = function(options){
         /*
-         * Set a tag value in Fluidinfo and (if successful) in the cache.
+         * Store a set of tag values in Fluidinfo and (if successful) in
+         * the cache.
          *
          * options contains:
          *     onError: (optional) an errback function.
          *     onSuccess: (optional) a success function.
-         *     tag: the path to the tag whose value should be set
-         *     value: the value to give it
+         *     tagNamesAndValues: a map of tag names to values to set.
          */
-
-        var values = {};
-        values[options.tag] = options.value;
 
         handler.session.tag({
             about: handler.about,
@@ -275,10 +268,16 @@ var makeTagValueHandler = function(options){
                 options.onError && options.onError(result);
             },
             onSuccess: function(result){
-                handler.cache[options.tag] = options.value;
+                // Update the cache and call our caller's onSuccess function.
+                var tagNamesAndValues = options.tagNamesAndValues;
+                for (tagName in tagNamesAndValues){
+                    if (tagNamesAndValues.hasOwnProperty(tagName)){
+                        handler.cache[tagName] = tagNamesAndValues[tagName];
+                    }
+                }
                 options.onSuccess && options.onSuccess(result);
             },
-            values: values
+            values: options.tagNamesAndValues
         });
     };
 
@@ -289,7 +288,7 @@ var makeTagValueHandler = function(options){
          * options contains:
          *     onError: (optional) an errback function.
          *     onSuccess: (optional) a success function.
-         *     tag: the path to the tag whose value should be removed.
+         *     tags: the paths to the tags whose values should be removed.
          */
 
         handler.session.del({
@@ -301,7 +300,7 @@ var makeTagValueHandler = function(options){
                 delete handler.cache[options.tag];
                 options.onSuccess && options.onSuccess(result);
             },
-            tags: [options.tag],
+            tags: options.tags,
             where: 'fluiddb/about = "' + _quoteAbout(handler.about) + '"'
         });
     };

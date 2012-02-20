@@ -72,7 +72,7 @@ function clearStatus(msg){
     s.style.visibility = 'hidden';
 }
 
-function save(url, callback){
+function save(tab, callback){
     var ok = true;
     var callbackCalled = false;
     var fluidinfoCallsMade = 0;
@@ -104,9 +104,9 @@ function save(url, callback){
         tagNamesAndValues[tagName1.value] = parseFluidinfoValue(tagValue.value);
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: tagNamesAndValues,
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: tagNamesAndValues
         }, function(response) {
             if (response.success){
                 tagName1.value = '';
@@ -151,9 +151,9 @@ function save(url, callback){
         if (allKeywordsValid && numberOfKeywords){
             fluidinfoCallsMade++;
             chrome.extension.sendRequest({
-                action: 'tag',
-                tagNamesAndValues: tagNamesAndValues,
-                about: url
+                action: 'tag-current-url',
+                tabId: tab.id,
+                tagNamesAndValues: tagNamesAndValues
             }, function(response){
                 if (response.success){
                     // keywordsField.value = '';
@@ -193,14 +193,13 @@ function save(url, callback){
     if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { 'read-later': true },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { 'read-later': true }
         }, function(response) {
             if (response.success){
                 existingValues['read-later'] = true;
                 readLater.checked = true;
-                console.log('Read-later tag saved successfully.');
                 status('Read-later tag saved successfully.');
             }
             else {
@@ -213,14 +212,13 @@ function save(url, callback){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag',
-            tags: ['read-later'],
-            about: url
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['read-later']
         }, function(response) {
             if (response.success){
                 delete existingValues['read-later'];
                 readLater.checked = false;
-                console.log('Read-later tag removed successfully.');
                 status('Read-later tag removed successfully.');
             }
             else {
@@ -256,14 +254,13 @@ function save(url, callback){
     if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { 'like': true },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { 'like': true }
         }, function(response) {
             if (response.success){
                 existingValues.like = true;
                 like.checked = true;
-                console.log('like tag saved successfully.');
                 status('like tag saved successfully.');
             }
             else {
@@ -276,14 +273,13 @@ function save(url, callback){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag',
-            tags: ['like'],
-            about: url
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['like']
         }, function(response) {
             if (response.success){
                 delete existingValues.like;
                 like.checked = false;
-                console.log('like tag removed successfully.');
                 status('like tag removed successfully.');
             }
             else {
@@ -319,14 +315,13 @@ function save(url, callback){
     if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) }
         }, function(response) {
             if (response.success){
                 existingValues.rating = rating.value;
                 status('Rating saved successfully.');
-                console.log('rating tag saved successfully.');
             }
             else {
                 ok = false;
@@ -338,15 +333,14 @@ function save(url, callback){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag',
-            tags: ['rating'],
-            about: url
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['rating']
         }, function(response) {
             if (response.success){
                 delete existingValues.rating;
                 rating.value = '';
                 status('rating removed successfully.');
-                console.log('rating tag removed successfully.');
             }
             else {
                 ok = false;
@@ -381,14 +375,13 @@ function save(url, callback){
     if (setValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: { comment: comment.value },
-            about: url
+            action: 'tag-current-url',
+            tabId: tab.id,
+            tagNamesAndValues: { comment: comment.value }
         }, function(response) {
             if (response.success){
                 existingValues.comment = comment.value;
                 status('Comment saved successfully.');
-                console.log('comment saved successfully.');
             }
             else {
                 ok = false;
@@ -400,15 +393,14 @@ function save(url, callback){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag',
-            tags: ['comment'],
-            about: url
+            action: 'untag-current-url',
+            tabId: tab.id,
+            tags: ['comment']
         }, function(response) {
             if (response.success){
                 delete existingValues.comment;
                 comment.value = '';
                 status('comment removed successfully.');
-                console.log('comment removed successfully.');
             }
             else {
                 ok = false;
@@ -423,7 +415,7 @@ function save(url, callback){
     var about = document.getElementById('about');
     if (tagName2.value && about.value){
         var tagNamesAndValues = {};
-        tagNamesAndValues[tagName2.value] = url;
+        tagNamesAndValues[tagName2.value] = tab.url;
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
             action: 'tag',
@@ -475,6 +467,7 @@ function fi_init(){
             return false;
         };
 
+        // Update the URL link at the top of the popup.
         var a = document.getElementById('_fi_link');
         a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(tab.url);
 
@@ -482,12 +475,10 @@ function fi_init(){
         // tags have values already on the Fluidinfo object for the URL.
         var tags = [ 'comment', 'like', 'rating', 'read-later' ];
         chrome.extension.sendRequest({
-            action: 'getValues',
+            action: 'get-values-for-current-url',
             tags: tags,
             tabId: tab.id
         }, function(response){
-            console.log('got response from getValues call:');
-            console.log(response);
             if (response.success){
                 existingValues = {};
                 for (var i = 0; i < tags.length; i++){
@@ -506,7 +497,7 @@ function fi_init(){
 
                 // Set up the save function, providing it with any existing values.
                 document.getElementById('_fi_save').onclick = function(){
-                    save(tab.url, function(status){
+                    save(tab, function(status){
                         if (status){
                             // Select the current tab (which has the
                             // side-effect of closing the popup).

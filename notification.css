@@ -1,5 +1,6 @@
 body{
     font-family: 'Varela Round',Helvetica,Arial,sans-serif;
+    font-size: 12px;
 }
 
 a {
@@ -8,9 +9,8 @@ a {
 }
 
 #logo {
-    position: absolute;
-    top: 5px;
-    left: 5px;
+    float: left;
+    margin: 0px 5px 0px 0px;
 }
 
 #fi_notification_intro {
@@ -30,11 +30,11 @@ a {
 
 .tagItem {
     margin-bottom: 4px;
-    position:relative;
+    position: relative;
 }
 
 .tagHeader {
-    margin-top:8px;
+    margin-top: 8px;
     margin-bottom: 8px;
 }
 
@@ -47,7 +47,7 @@ a {
 }
 
 .tagAndValue {
-    clear: both;
+    /* clear: both; */
 }
 
 .tagAndValue li {
@@ -66,19 +66,19 @@ a {
     border-radius: 13px;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    overflow:auto;
+    overflow: auto;
 }
 
 .tagBullet{
-    position:relative;
-    top:1px;
-    margin-right:7px;
+    position: relative;
+    top: 1px;
+    margin-right: 7px;
 }
 
 /* To run booleans and numbers on a single line */
 .tagName{
-    margin-top:-2px;
-    padding-right:4px;
+    margin-top: -2px;
+    padding-right: 4px;
     padding-bottom: 4px;
     font-weight: bold;
     padding-right: 8px;

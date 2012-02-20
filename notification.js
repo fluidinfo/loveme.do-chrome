@@ -15,18 +15,17 @@ var populate = function(options){
 
     console.log(options);
     try {
-    var content = valueUtils.pathsAndValuesToHTML({
-        displayImages: false,
-        dropNamespaces: true,
-        fetchLinks: false,
-        linkTags: true,
-        result: { data: options.valuesCache.cache },
-        showTagPaths: true,
-        tagPaths: options.wantedTags
-    });
-
-    console.log(content);
-    document.getElementById('fi_yourtags').innerHTML = content.content;
+        var content = valueUtils.pathsAndValuesToHTML({
+            displayImages: false,
+            dropNamespaces: true,
+            fetchLinks: false,
+            linkTags: true,
+            result: { data: options.valuesCache.cache },
+            showTagPaths: true,
+            tagPaths: options.wantedTags
+        });
+        console.log(content.content);
+        document.getElementById('fi_yourtags').innerHTML = content.content;
     }
     catch (error){
         console.log('Hit an error rendering tag values.');
