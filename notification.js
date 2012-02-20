@@ -13,7 +13,6 @@ var populate = function(options){
         }
     );
 
-    console.log(options);
     try {
         var content = valueUtils.pathsAndValuesToHTML({
             displayImages: false,
@@ -24,7 +23,6 @@ var populate = function(options){
             showTagPaths: true,
             tagPaths: options.wantedTags
         });
-        console.log(content.content);
         document.getElementById('fi_yourtags').innerHTML = content.content;
     }
     catch (error){
