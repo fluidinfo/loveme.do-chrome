@@ -1,0 +1,27 @@
+#sidebar {
+    width: 180px;
+}
+
+#content {
+    left: 190px;
+}
+
+p {
+    margin: 0 0 0.5em;
+}
+
+ul {
+    margin: 0 0 0.5em 1em;
+}
+
+table {
+    margin-bottom: 1em;
+}
+
+.setting.group-name {
+    width: 100px;
+}
+
+#credentials-valid-img {
+    margin-right: 5px;
+}
