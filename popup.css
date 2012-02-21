@@ -3,20 +3,25 @@ body {
     margin: 2px;
 }
 
+.logo {
+    float: left;
+    margin: 0px 5px 5px 0px;
+}
+
 ._fi_initial_p {
-    padding: 0px;
-    margin: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
 }
 
 .fluidinfoDiv {
     padding: 5px;
-    background-color: rgb(204,204,255);
+    background-color: #e8e8e8;
     text-align: left;
     border: 1px solid #999;
 }
 
 .fluidinfoDiv img {
-    margin: 3px 8px 0px 2px;
+    margin: 0px 8px 0px 0px;
 }
 
 .fluidinfoDiv table {
@@ -32,7 +37,7 @@ body {
 }
 
 .fluidinfoDiv > form > table > tbody > tr:nth-child(odd) {
-    background-color: rgb(204,204,240);
+    background-color: rgb(204,204,204);
 }
 
 .fluidinfoDiv input, .fluidinfoDiv textarea {
@@ -52,9 +57,5 @@ body {
 #_fi_status {
     margin: 5px 0px 0px 0px;
     padding: 3px 3px 3px 3px;
-    visibility: hidden;
-}
-
-#_fi_thing {
     visibility: hidden;
 }
