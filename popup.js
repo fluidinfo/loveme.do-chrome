@@ -424,11 +424,7 @@ function save(tab, callback){
         }, function(response){
             if (response.success){
                 // Update object link.
-                var a = document.getElementById('_fi_thing_link');
-                a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about.value);
-                a.innerText = 'Visit "' + about.value + '" in Fluidinfo.';
-                document.getElementById('_fi_thing').style.visibility = 'visible';
-                status('URL set as tag "' + tagName2.value + '" value on object for "' + about.value + '".');
+                status('URL set as "' + tagName2.value + '" on object for "' + about.value + '".');
                 tagName2.value = '';
                 about.value = '';
             }
