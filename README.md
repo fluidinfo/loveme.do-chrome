@@ -2,43 +2,50 @@
 The Fluidinfo chrome extension
 ==============================
 
-The Fluidinfo extension allows you to do two things:
+The Fluidinfo extension helps you work with information while browsing the web. You can easily:
 
-1. Tag URLs in Fluidinfo while browsing.
-2. Jump to Fluidinfo to examine and tag anything you're looking at on the web.
+* Add info to anything
+* See info you've added to URLs
+* Jump to http://fluidinfo.com to look at anything
 
-Tagging URLs
-------------
+These are described below.
 
-To tag URLs, you will first need to log in. Right-click the Fluidinfo icon
-and enter your Fluidinfo username and password.  Then, when browsing,
-(left) click the Fluidinfo icon at any time to tag the current URL.
+ADD INFO
+--------
 
-You'll see a number of ways you can tag. These include adding a tag with a
-value, adding tags with no values (like keywords or old-fashioned tags),
-adding ratings, read-later, comments, like tags, etc.
+Click the extension icon to add info to the current URL.
 
-Most interesting and thought-provoking though is to use the current URL as
-the value of a tag. You can enter the name of a tag (e.g., 'image') and the
-thing in Fluidinfo you want to tag (e.g., @joe) and the @joe object in
-Fluidinfo will be tagged with the URL as the value of the tag named
-'image'.  Then when anyone looks at the Fluidinfo page for @joe, they'll
-see your tag as an embedded web page or image (of the URL you were looking
-at).  This is easy visual tagging of anything. It lets you create
-attractive mini web sites about anything at all just with the push of a few
-buttons and a copy/paste of some URLs. Want to pass a URL to a friend, tag
-their @name object with it as a tag value. It might sound complicated, but
-it's very simple when you see it in action. Don't be shy, give it a try!
+You'll see a number of ways to add info. These include adding keywords, comments, ratings, marking pages to read later, and adding arbitrary info using a description and (an optional) value.
 
-Jumping to pages in Fluidnfo
-----------------------------
+You can also add your current URL to anything else in Fluidinfo. Enter a description (e.g., image) and the thing in Fluidinfo you want to add to (e.g., @joe).  When anyone looks at the @joe object in Fluidinfo, they'll see the page you added to it.  This is easy visual tagging of anything. You can create attractive collections of info about anything at all.
 
-When you have text selected, or when you're over a link or an image, the
-right-click context menu will give you the option of jumping to that thing
-(URL, text of URL link, or selected text) in Fluidinfo. You can also
-right-click the background of the page to to jump to the Fluidinfo page for
-your current URL. When over a linked image, the context menu will let you
-jump to either the URL of the image or the URL of the link in Fluidinfo.
+You must be logged in to add info. Click the Login tab on the left of the Options page for details. Right click the Fluidinfo extension to see the Options page.
+
+SEE INFO
+--------
+
+When you navigate to a page you've added to, a popup will appear to show you your info.  The extension icon will also display a count of the number of pieces of info you've added to the page.  Soon we'll also show you what your friends have added to pages.
+
+JUMP
+----
+
+There are many ways to quickly jump to fluidinfo.com to look at anything:
+
+* Right-click the page background to jump to the current URL
+* Hover over any link and right-click to jump to the URL of the link or the text in the link
+* Hover over any image and right-click to jump to the URL of the image
+* Select any text on a web page, and right-click to jump to it
+* In the Chrome location bar, type "fi" and a Space. Then type anything you like, and hit Enter to jump to the Fluidinfo page for that thing.
+
+FEEDBACK
+--------
+
+We'd love to hear what you think and to improve the extension based on your suggestions.  You can mail us at info@fluidinfo.com or come hang out with us in the #fluidinfo channel on irc.freenode.net.
+
+Happy tagging!
+
+The Fluidinfo Team
+
 
 Install from the Chrome store
 -----------------------------
@@ -52,17 +59,4 @@ Installing from source as an unpacked Chrome extension
 
 Visit `chrome://extensions`, turn on Developer Mode, and click `Load
 unpacked extension`. Then navigate to the directory of this extension and
-Chrome will do the rest.  Make sure you disable any other version of the
-extension you have running so you don't get two Fluidinfo icons in your
-browser.
-
-Feedback
---------
-
-We'd love to hear your feedback and to work to improve the extension based
-on suggestions.  You can mail us at info@fluidinfo.com or come hang out on
-the #fluidinfo IRC channel with us on irc.freenode.net.
-
-Happy tagging!
-
-The Fluidinfo Team
+Chrome will do the rest.
