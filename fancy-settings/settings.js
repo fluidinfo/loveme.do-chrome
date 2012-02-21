@@ -5,8 +5,28 @@ window.addEvent('domready', function (){
             settings.manifest.username.set('');
         });
 
+        var checkValid = function(){
+            chrome.extension.sendRequest(
+                {
+                    action: 'validate'
+                },
+                function(response){
+                    if (response.success){
+                        document.getElementById('credentials-valid-img').src = '../booleanTrue.png';
+                        document.getElementById('credentials-valid-text').innerText = 'OK, you\'re good to go!';
+                    }
+                    else {
+                        document.getElementById('credentials-valid-img').src = '../booleanFalse.png';
+                        document.getElementById('credentials-valid-text').innerText = 'The above values are not valid.';
+                    }
+                }
+            );
+        };
+
+        checkValid();
+
         settings.manifest.password.addEvent('action', function (value){
-            console.log('new password value is: ' + value);
+            checkValid();
         });
     });
 });

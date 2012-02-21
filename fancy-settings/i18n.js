@@ -1,44 +1,49 @@
 this.i18n = {
-    "settings": {
-        "en": "Fluidinfo"
+    'settings': {
+        'en': 'Fluidinfo'
     },
-    "help": {
-        "en": "Help"
+    'help': {
+        'en': 'Help'
     },
-    "options": {
-        "en": "Options",
-        "de": "Optionen"
+    'options': {
+        'en': 'Options',
+        'de': 'Optionen'
     },
-    "search": {
-        "en": "Search",
-        "de": "Suche"
+    'search': {
+        'en': 'Search',
+        'de': 'Suche'
     },
-    "nothing-found": {
-        "en": "No matches were found.",
-        "de": "Keine Übereinstimmungen gefunden."
+    'nothing-found': {
+        'en': 'No matches were found.',
+        'de': 'Keine Übereinstimmungen gefunden.'
     },
-    "about": {
-        "en": "About",
-        "de": ""
+    'about': {
+        'en': 'About',
+        'de': ''
     },
-    "information": {
-        "en": "Information",
-        "de": "Information"
+    'information': {
+        'en': 'Information'
     },
-    "login": {
-        "en": "Login",
-        "de": "Anmeldung"
+    'login': {
+        'en': 'Login',
+        'de': 'Anmeldung'
     },
-    "username": {
-        "en": "Username:",
-        "de": "Benutzername:"
+    'username': {
+        'en': 'Username:',
+        'de': 'Benutzername:'
     },
-    "password": {
-        "en": "Password:",
-        "de": "Passwort:"
+    'password': {
+        'en': 'Password:',
+        'de': 'Passwort:'
     },
-    "description": {
-        "en":
+    'valid': {
+        'en': 'Valid:'
+    },
+    'valid description': {
+        'en': '<img id="credentials-valid-img" src="../booleanFalse.png"/> <span id="credentials-valid-text">x</span>'
+    },
+    'description': {
+        'en':
             '<p>' +
             'The Fluidinfo extension helps you work with information while ' +
             'browsing the web. You can easily: ' +
@@ -50,10 +55,10 @@ this.i18n = {
             '</ul> ' +
             'These are described below.'
     },
-    "add description": {
-        "en":
+    'add description': {
+        'en':
             '<p> ' +
-            'Click the <img src="../fi_16.png" height="14" width="14"> extension icon to add information for the ' +
+            'Click the <img src="../fi_16.png" height="14" width="14"> extension icon to add info to the ' +
             'current URL.' +
             '</p> ' +
             '<p> ' +
@@ -72,8 +77,8 @@ this.i18n = {
             'You must be logged in to add info. Click the Login tab (left) for details.' +
             '</p>'
     },
-    "see description": {
-        "en":
+    'see description': {
+        'en':
             '<p>' +
             '<img src="extension-count.png" style="float: left; margin-right: 8px;"> ' +
             'When you navigate to a page you\'ve added to, a popup will appear ' +
@@ -83,8 +88,8 @@ this.i18n = {
             'Soon we\'ll also show you what your friends have added to pages.' +
             '</p>'
     },
-    "jump description": {
-        "en":
+    'jump description': {
+        'en':
             '<p>' +
             'There are many ways to quickly jump to <a href="http://fluidinfo.com">fluidinfo.com</a> to look at anything:' +
             '</p>' +
@@ -92,40 +97,93 @@ this.i18n = {
             '<li>Right-click the page background to jump to the current URL</li> ' +
             '<li>Hover over any link and right-click to jump to the URL of the link or the text in the link</li> ' +
             '<li>Hover over any image and right-click to jump to the URL of the image</li> ' +
-            '<li>Select any text, and right-click to jump to it</li> ' +
+            '<li>Select any text on a web page, and right-click to jump to it</li> ' +
             '<li>In the Chrome location bar, type &quot;fi&quot; and a Space. Then type anything you like, and hit Enter ' +
             'to jump to the Fluidinfo page for that thing. For example, type \"fi shake shack\" and ' +
             'you\'ll see something like: <img src="omnibox-shake-shack.png"></li>' +
             '</ul> '
     },
-    "passwordDescription": {
-        "en": "Here's where you set your password.",
-        "de": "Das ist eine Beschreibung."
+    'feedback description': {
+        'en': 'We\'d love to hear what you think and to improve the extension based on your suggestions. ' +
+              'You can mail us at <a href="mailto:info@fluidinfo.com">info@fluidinfo.com</a> or come hang ' +
+              'out with us in <a href="irc://chat.freenode.net/fluidinfo" target="_blank">the #fluidinfo channel</a> ' +
+              'on irc.freenode.net.'
     },
-    "logoutDescription": {
-        "en": "Click below to have the extension clear your user details."
+    'password description': {
+        'en':
+            '<p>' +
+            'You\'ll need a Fluidinfo account, including a password, for adding ' +
+            'info to URLs with the extension. The easiest way to set a ' +
+            'password, depends on whether you\'ve used fluidinfo.com in the ' +
+            'past. Pick one of the following scenarios: ' +
+            '</p>' +
+
+            '<ul>' +
+
+            '<li>' +
+            'If you\'re already a user of Fluidinfo and have been logging ' +
+            'in there using Twitter: ' +
+            'go to <a href="http://fluidinfo.com">fluidinfo.com</a>, log in with Twitter, then ' +
+            '<a href="https://fluidinfo.com/accounts/settings/">set your password</a>.' +
+            '</li>' +
+
+            '<li>' +
+            'If you\'re not already a user of Fluidinfo and would like ' +
+            'to create an account using Twitter login: ' +
+            'go to <a href="http://fluidinfo.com">fluidinfo.com</a> and ' +
+            'log in with Twitter (top right), then ' +
+            '<a href="https://fluidinfo.com/accounts/settings/">set your password</a>.' +
+            '</li>' +
+
+            '<li>' +
+            'If you already have a Fluidinfo account that you created ' +
+            'manually (i.e., without using Twitter login): ' +
+            '<a href="https://fluidinfo.com/accounts/settings/">set your password</a>.' +
+            '</li>' +
+
+            '<li>' +
+            'If you\'ve never used Fluidinfo in your entire life, don\'t ' +
+            'use Twitter, and have no idea what I\'m talking about: ' +
+            '<a href="https://fluidinfo.com/accounts/new/">create a new Fluidinfo account</a> ' +
+            'and you\'ll get an email with a link to set your pasword.' +
+            '</li>' +
+
+            '</ul>' +
+
+            '<p>' +
+            'If you manage to fall into some other category, please <a ' +
+            'href="mailto:info@fluidinfo.com">send us an email</a> and we\'ll ' +
+            'be happy help. ' +
+            '</p>'
     },
-    "lowercaseDescription": {
-        "en": "The Fluidinfo extension makes it trivial to jump from anything you "
-              + "see on the screen to the page for that thing in Fluidinfo. For "
-              + "example, if you see a name and you'd like to add some information "
-              + "to it, select it with your mouse, right-click the selected "
-              + "text, and use the context menu to jump to the name in Fluidinfo. "
-              + ""
-              + "There is a strong convention in Fluidinfo to use lowercase names "
-              + "where possible and convenient. So by default, the extension will "
-              + "offer to take you to the lowercase version of linked or selected text. "
-              + "You can customize that behavior below."
+    'credentials description': {
+        'en': 'Enter your username and password below. (If you use fluidinfo.com ' +
+            'via Twitter login, your username is the same as your Twitter screen name.)'
     },
-    "notificationDescription": {
-        "en": "When the extension notices that you have information stored for "
-              + "the web page you're looking at, it will display a popup notification "
-              + "to show you your info. The notification can stay on screen indefinitely "
-              + "(until you close it manually) or can vanish automatically after a time "
-              + "you specify."
+    'logout description': {
+        'en': 'Click below to have the extension forget your username and password.'
     },
-    "logout": {
-        "en": "Logout",
-        "de": "Abmeldung"
+    'lowercase description': {
+        'en': 'The Fluidinfo extension makes it trivial to jump from anything you ' +
+              'see on the screen to the page for that thing in Fluidinfo. For ' +
+              'example, if you see a name and you\'d like to add info ' +
+              'to it, select it with your mouse, right-click the selected ' +
+              'text, and use the context menu to jump to the name in Fluidinfo. ' +
+              '' +
+              'There is a strong convention in Fluidinfo to use lowercase names ' +
+              'where possible and convenient. So by default, the extension will ' +
+              'offer to take you to the lowercase version of linked or selected text. ' +
+              'You can customize that behavior below.'
+    },
+    'notification description': {
+        'en': 'When you have info stored for ' +
+              'the web page you\'re looking at, the extension will pop up a small notification ' +
+              'to show you. The notification can stay on screen indefinitely ' +
+              '(until you close it manually) or can vanish automatically after a time ' +
+              'you specify.'
+    },
+    'logout': {
+        'en': 'Logout',
+        'de': 'Abmeldung'
     }
 };

@@ -1,7 +1,11 @@
-/*
-// Add your own style rules here, not in css/main.css
-// or css/setting.css for easy updating reasons.
-*/
+#sidebar {
+    width: 180px;
+}
+
+#content {
+    left: 190px;
+}
+
 p {
     margin: 0 0 0.5em;
 }
@@ -16,4 +20,8 @@ table {
 
 .setting.group-name {
     width: 100px;
+}
+
+#credentials-valid-img {
+    margin-right: 5px;
 }

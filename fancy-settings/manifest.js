@@ -31,11 +31,25 @@ this.manifest = {
             'text': i18n.get('jump description')
         },
         {
+            'tab': i18n.get('help'),
+            'group': i18n.get('Feedback'),
+            'name': 'feedback',
+            'type': 'description',
+            'text': i18n.get('feedback description')
+        },
+        {
             'tab': i18n.get('login'),
-            'group': i18n.get('login'),
+            'group': i18n.get('password'),
             'name': 'passwordDescription',
             'type': 'description',
-            'text': i18n.get('passwordDescription')
+            'text': i18n.get('password description')
+        },
+        {
+            'tab': i18n.get('login'),
+            'group': i18n.get('login'),
+            'name': 'credentialsDescription',
+            'type': 'description',
+            'text': i18n.get('credentials description')
         },
         {
             'tab': i18n.get('login'),
@@ -54,10 +68,17 @@ this.manifest = {
         },
         {
             'tab': i18n.get('login'),
+            'group': i18n.get('login'),
+            'name': 'valid',
+            'type': 'description',
+            'text': i18n.get('valid description')
+        },
+        {
+            'tab': i18n.get('login'),
             'group': i18n.get('logout'),
             'name': 'logoutDescription',
             'type': 'description',
-            'text': i18n.get('logoutDescription')
+            'text': i18n.get('logout description')
         },
         {
             'tab': i18n.get('login'),
@@ -71,7 +92,7 @@ this.manifest = {
             'group': i18n.get('Lower case'),
             'name': 'lowercaseDescription',
             'type': 'description',
-            'text': i18n.get('lowercaseDescription')
+            'text': i18n.get('lowercase description')
         },
         {
             'tab': i18n.get('options'),
@@ -90,7 +111,7 @@ this.manifest = {
             'group': i18n.get('Notifications'),
             'name': 'notificationDescription',
             'type': 'description',
-            'text': i18n.get('notificationDescription')
+            'text': i18n.get('notification description')
         },
         {
             'tab': i18n.get('options'),

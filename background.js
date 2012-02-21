@@ -288,19 +288,16 @@ chrome.extension.onRequest.addListener(
             sendResponse(settings.toObject());
         }
         else if (request.action === 'validate'){
-            var username = request.username;
-            var password = request.password;
+            var username = settings.get('username');
+            var password = settings.get('password');
             if (!(username && password)){
                 sendResponse({
-                    message: 'Error: username or password were not passed.',
+                    message: 'Error: username and password are not both set.',
                     success: false
                 });
                 return;
             }
-            fluidinfoAPI = fluidinfo({
-                username: username,
-                password: password
-            });
+            setFluidinfoAPIFromSettings();
             fluidinfoAPI.api.get({
                 path: ['users', username],
                 onSuccess: function(response){
