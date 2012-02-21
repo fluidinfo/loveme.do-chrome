@@ -29,7 +29,7 @@ function parseFluidinfoValue(value){
         // Convert to Array
         var rawArray = value.slice(1, -1).split(',');
         var val = [];
-        for (var i = 0; i < rawArray.length; i++) {
+        for (var i = 0; i < rawArray.length; i++){
             val.push(trim(rawArray[i]));
         }
         return val;
@@ -42,11 +42,11 @@ function parseFluidinfoValue(value){
 
     // Boolean / null value?
     var lower = value.toLowerCase();
-    if (lower === 'true' || lower === 'false') {
+    if (lower === 'true' || lower === 'false'){
         return lower === 'true';
     }
 
-    if (lower === 'null') {
+    if (lower === 'null'){
         return null;
     }
 
@@ -107,7 +107,7 @@ function save(tab, callback){
             action: 'tag-current-url',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 tagName1.value = '';
                 tagValue.value = '';
@@ -196,7 +196,7 @@ function save(tab, callback){
             action: 'tag-current-url',
             tabId: tab.id,
             tagNamesAndValues: { 'read-later': true }
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 existingValues['read-later'] = true;
                 readLater.checked = true;
@@ -215,7 +215,7 @@ function save(tab, callback){
             action: 'untag-current-url',
             tabId: tab.id,
             tags: ['read-later']
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 delete existingValues['read-later'];
                 readLater.checked = false;
@@ -257,7 +257,7 @@ function save(tab, callback){
             action: 'tag-current-url',
             tabId: tab.id,
             tagNamesAndValues: { 'like': true }
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 existingValues.like = true;
                 like.checked = true;
@@ -276,7 +276,7 @@ function save(tab, callback){
             action: 'untag-current-url',
             tabId: tab.id,
             tags: ['like']
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 delete existingValues.like;
                 like.checked = false;
@@ -318,7 +318,7 @@ function save(tab, callback){
             action: 'tag-current-url',
             tabId: tab.id,
             tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) }
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 existingValues.rating = rating.value;
                 status('Rating saved successfully.');
@@ -336,7 +336,7 @@ function save(tab, callback){
             action: 'untag-current-url',
             tabId: tab.id,
             tags: ['rating']
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 delete existingValues.rating;
                 rating.value = '';
@@ -378,7 +378,7 @@ function save(tab, callback){
             action: 'tag-current-url',
             tabId: tab.id,
             tagNamesAndValues: { comment: comment.value }
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 existingValues.comment = comment.value;
                 status('Comment saved successfully.');
@@ -396,7 +396,7 @@ function save(tab, callback){
             action: 'untag-current-url',
             tabId: tab.id,
             tags: ['comment']
-        }, function(response) {
+        }, function(response){
             if (response.success){
                 delete existingValues.comment;
                 comment.value = '';
@@ -467,49 +467,64 @@ function fi_init(){
             return false;
         };
 
-        // Update the URL link at the top of the popup.
-        var a = document.getElementById('_fi_link');
-        a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(tab.url);
-
-        // Populate the popup with known values of certain simple tags, if those
-        // tags have values already on the Fluidinfo object for the URL.
-        var tags = [ 'comment', 'like', 'rating', 'read-later' ];
+        // Get the settings from the background app & decide what to
+        // do, depending on whether the user is logged in or not.
         chrome.extension.sendRequest({
-            action: 'get-values-for-current-url',
-            tags: tags,
-            tabId: tab.id
-        }, function(response){
-            if (response.success){
-                existingValues = {};
-                for (var i = 0; i < tags.length; i++){
-                    var tag = tags[i];
-                    var value = response.result.data[response.username + '/' + tag];
-                    if (value !== undefined){
-                        existingValues[tag] = value;
-                        if (tag === 'comment' || tag === 'rating'){
-                            document.getElementById(tag).value = value;
-                        }
-                        else {
-                            document.getElementById(tag).checked = value;
-                        }
-                    }
-                }
+            action: 'get-settings'
+        }, function(settings){
+            if (settings.username){
+                document.getElementById('_fi_not_logged_in').style.display = 'none';
+                document.getElementById('_fi_tag').style.display = '';
 
-                // Set up the save function, providing it with any existing values.
-                document.getElementById('_fi_save').onclick = function(){
-                    save(tab, function(status){
-                        if (status){
-                            // Select the current tab (which has the
-                            // side-effect of closing the popup).
-                            chrome.tabs.update(tab.id, {selected: true});
+                // Update the URL link at the top of the popup.
+                var a = document.getElementById('_fi_link');
+                a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(tab.url);
+
+                // Populate the popup with known values of certain simple tags, if those
+                // tags have values already on the Fluidinfo object for the URL.
+                var tags = [ 'comment', 'like', 'rating', 'read-later' ];
+                chrome.extension.sendRequest({
+                    action: 'get-values-for-current-url',
+                    tags: tags,
+                    tabId: tab.id
+                }, function(response){
+                    if (response.success){
+                        existingValues = {};
+                        for (var i = 0; i < tags.length; i++){
+                            var tag = tags[i];
+                            var value = response.result.data[response.username + '/' + tag];
+                            if (value !== undefined){
+                                existingValues[tag] = value;
+                                if (tag === 'comment' || tag === 'rating'){
+                                    document.getElementById(tag).value = value;
+                                }
+                                else {
+                                    document.getElementById(tag).checked = value;
+                                }
+                            }
                         }
-                    });
-                    return false;
-                };
+
+                        // Set up the save function, providing it with any existing values.
+                        document.getElementById('_fi_save').onclick = function(){
+                            save(tab, function(status){
+                                if (status){
+                                    // Select the current tab (which has the
+                                    // side-effect of closing the popup).
+                                    chrome.tabs.update(tab.id, {selected: true});
+                                }
+                            });
+                            return false;
+                        };
+                    }
+                    else {
+                        status(response.message);
+                    }
+                });
             }
             else {
-                // Not logged in, most likely.
-                status(response.message);
+                // Not logged in.
+                document.getElementById('_fi_not_logged_in').style.display = '';
+                document.getElementById('_fi_tag').style.display = 'none';
             }
         });
     });

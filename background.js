@@ -3,6 +3,13 @@ var defaultAbout = '@fluidinfo';
 var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
 
+// -----------------  Settings -----------------
+
+var settings = new Store('settings', {
+    'lowercase': 'lower',
+    'notificationTimeout': 30
+});
+
 // -----------------  Omnibox -----------------
 
 chrome.omnibox.setDefaultSuggestion({
@@ -18,7 +25,7 @@ chrome.omnibox.onInputEntered.addListener(function(text){
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggest){
-    var username = localStorage.username;
+    var username = settings.get('username');
 
     if (username &&
             ((text === username.slice(0, text.length)) ||
@@ -114,26 +121,47 @@ var absoluteHref = function(linkURL, docURL){
 
 // contextMenuItems has attributes that are the text of current
 // context menu items. Its values are objects with two attributes,
-// 'context' (either 'selection' or 'link') and 'menuItem', the menu
-// item index returned by chrome.contextMenus.create.
+// 'context' (either 'link' or 'selection') and 'menuItem',
+// the menu item index returned by chrome.contextMenus.create.
 var contextMenuItems = {};
 
-var addContextMenuItem = function(text, context){
+var addContextMenuItem = function(text, type, context){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
-    if (typeof contextMenuItems[text] === 'undefined'){
-        var menuItem = chrome.contextMenus.create({
-            'title' : 'Fluidinfo "' + text + '"',
-            'type' : 'normal',
-            'contexts' : [context],
-            'onclick' : function(info, tab){
-                openNewTab(text, info, tab);
-            }
-        });
-        contextMenuItems[text] = {
-            context: context,
-            menuItem: menuItem
-        };
+
+    // Get the lowercase value from settings each time we're called, as it could
+    // be changed by the user at any moment.
+    var lowercase = settings.get('lowercase');
+    var items = [];
+    if (type === 'url'){
+        // Don't convert URLs to lowercase.
+        items.push(text);
+    }
+    else {
+        // Either a selection or link text.
+        if (lowercase === 'original' || lowercase === 'both'){
+            items.push(text);
+        }
+        if (lowercase === 'lower' || lowercase === 'both'){
+            items.push(text.toLowerCase());
+        }
+    }
+    for (var i = 0; i < items.length; i++){
+        var item = items[i];
+        if (typeof contextMenuItems[item] === 'undefined'){
+            var menuItem = chrome.contextMenus.create({
+                'title' : 'Fluidinfo "' + item + '"',
+                'type' : 'normal',
+                'contexts' : [context],
+                'onclick' : function(info, tab){
+                    openNewTab(item, info, tab);
+                }
+            });
+            contextMenuItems[item] = {
+                context: context,
+                menuItem: menuItem
+            };
+        }
     }
 };
 
@@ -156,9 +184,7 @@ chrome.extension.onConnect.addListener(function(port){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
                 removeContextMenuItemsByContext('selection');
-                // Offer mixed & lower case versions.
-                addContextMenuItem(msg.selection, 'selection');
-                addContextMenuItem(msg.selection.toLowerCase(), 'selection');
+                addContextMenuItem(msg.selection, 'selection', 'selection');
             }
             else if (msg.selectionCleared){
                 removeContextMenuItemsByContext('selection');
@@ -176,7 +202,7 @@ chrome.extension.onConnect.addListener(function(port){
                 // There are <a> tags with no href in them.
                 if (msg.linkURL){
                     var url = absoluteHref(msg.linkURL, msg.docURL);
-                    addContextMenuItem(url, 'link');
+                    addContextMenuItem(url, 'url', 'link');
                 }
 
                 // And there are <a> tags with no text in them.
@@ -184,27 +210,27 @@ chrome.extension.onConnect.addListener(function(port){
                     if (msg.linkURL){
                         var url = absoluteHref(msg.linkURL, msg.docURL);
                         var match = twitterUserURLRegex.exec(url);
-                        if (match.length){
-                            var name = match[1].toLowerCase();
-                            if (name !== 'following' && name !== 'followers'){
+                        if (match !== null){
+                            // We can test against match[1] as the regexp captures the username,
+                            // so if it matched, match[1] will always be defined.
+                            var name = match[1];
+                            var lower = name.toLowerCase();
+                            if (lower !== 'following' && lower !== 'followers'){
                                 // Update with @name
-                                addContextMenuItem('@' + name, 'link');
+                                addContextMenuItem('@' + name, 'link-text', 'link');
 
                                 // Look for "fullname @username" text.
                                 var spaceAt = msg.text.indexOf(' @');
                                 if (spaceAt !== -1){
                                     var fullname = msg.text.slice(0, spaceAt);
-                                    addContextMenuItem(fullname, 'link');
-                                    addContextMenuItem(fullname.toLowerCase(), 'link');
+                                    addContextMenuItem(fullname, 'link-text', 'link');
                                 }
                             }
 
                             return;
                         }
                     }
-                    addContextMenuItem(msg.text, 'link');
-                    var lower = msg.text.toLowerCase();
-                    addContextMenuItem(lower, 'link');
+                    addContextMenuItem(msg.text, 'link-text', 'link');
                 }
             }
             else {
@@ -242,12 +268,12 @@ chrome.contextMenus.create({
 
 var fluidinfoAPI;
 
-var setFluidinfoAPIFromLocalStorage = function(){
+var setFluidinfoAPIFromSettings = function(){
     // Set the global fluidinfoAPI variable using credentials found in
-    // local storage, if possible. If credentials cannot be found, do
+    // the settings, if possible. If credentials cannot be found, do
     // nothing (callers can check fluidinfoAPI).
-    var username = localStorage.username;
-    var password = localStorage.password;
+    var username = settings.get('username');
+    var password = settings.get('password');
     if (username && password){
         fluidinfoAPI = fluidinfo({
             username: username,
@@ -258,7 +284,10 @@ var setFluidinfoAPIFromLocalStorage = function(){
 
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
-        if (request.action === 'validate'){
+        if (request.action === 'get-settings'){
+            sendResponse(settings.toObject());
+        }
+        else if (request.action === 'validate'){
             var username = request.username;
             var password = request.password;
             if (!(username && password)){
@@ -275,8 +304,6 @@ chrome.extension.onRequest.addListener(
             fluidinfoAPI.api.get({
                 path: ['users', username],
                 onSuccess: function(response){
-                    localStorage.username = username;
-                    localStorage.password = password;
                     sendResponse({
                         success: true
                     });
@@ -293,7 +320,7 @@ chrome.extension.onRequest.addListener(
         else if (request.action === 'tag'){
             // Adds a tag to an arbitrary object (used by the popup to put the current
             // URL onto an object as a tag value).
-            setFluidinfoAPIFromLocalStorage();
+            setFluidinfoAPIFromSettings();
             if (fluidinfoAPI === undefined){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -301,7 +328,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = localStorage.username;
+            var username = settings.get('username');
             var values = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
@@ -329,7 +356,7 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'tag-current-url'){
-            setFluidinfoAPIFromLocalStorage();
+            setFluidinfoAPIFromSettings();
             if (fluidinfoAPI === undefined){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -337,7 +364,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = localStorage.username;
+            var username = settings.get('username');
             var tagNamesAndValues = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
@@ -364,7 +391,7 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'untag-current-url'){
-            setFluidinfoAPIFromLocalStorage();
+            setFluidinfoAPIFromSettings();
             if (fluidinfoAPI === undefined){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -372,7 +399,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = localStorage.username;
+            var username = settings.get('username');
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
                 var tag = request.tags[i];
@@ -396,7 +423,7 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'get-values-for-current-url'){
-            setFluidinfoAPIFromLocalStorage();
+            setFluidinfoAPIFromSettings();
             if (fluidinfoAPI === undefined){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -408,7 +435,7 @@ chrome.extension.onRequest.addListener(
             // Figure out what tags to retrieve, based on the list of tags we already
             // know are on the object. This avoids asking Fluidinfo for things we
             // already know don't exist.
-            var username = localStorage.username;
+            var username = settings.get('username');
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
                 var tag = username + '/' + request.tags[i];
@@ -454,6 +481,7 @@ chrome.extension.onRequest.addListener(
 // on the object.
 var valuesCache = {};
 var notifications = {};
+var timeouts = {};
 
 var createNotification = function(tabId){
     if (window.webkitNotifications){
@@ -480,6 +508,10 @@ var deleteValuesCacheForTab = function(tabId){
 
 var deleteNotificationForTab = function(tabId){
     if (notifications[tabId] !== undefined){
+        if (timeouts[tabId] !== undefined){
+            clearTimeout(timeouts[tabId]);
+            delete timeouts[tabId];
+        }
         notifications[tabId].cancel();
         delete notifications[tabId];
     }
@@ -492,9 +524,8 @@ chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     if (fluidinfoAPI === undefined){
-        setFluidinfoAPIFromLocalStorage();
+        setFluidinfoAPIFromSettings();
         if (fluidinfoAPI === undefined){
-            console.log('Not fetching tags for URL. User is not logged in.');
             return;
         }
     }
@@ -516,7 +547,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         };
 
         var onSuccess = function(result){
-            var username = localStorage.username;
+            var username = settings.get('username');
             var tagPaths = result.data.tagPaths;
             var wantedTags = [];
             for (var i = 0; i < tagPaths.length; i++){
@@ -546,14 +577,14 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                         });
 
                         createNotification(tabId);
-                        /*
-                        var hide = function(){
-                            deleteNotificationForTab(tabId);
-                        };
-                        // TODO: make the timing of the hiding of notifications an option,
-                        // including no hiding at all.
-                        setTimeout(hide, 30000);
-                        */
+
+                        var timeout = settings.get('notificationTimeout');
+                        if (timeout){
+                            var hide = function(){
+                                deleteNotificationForTab(tabId);
+                            };
+                            timeouts[tabId] = setTimeout(hide, timeout * 1000);
+                        }
 
                         var populate = function(){
                             var found = false;

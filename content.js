@@ -70,6 +70,5 @@ var checkSelection = function(event){
     }
 };
 
-document.addEventListener('mousedown', checkSelection, true);
 document.addEventListener('mouseup', checkSelection, true);
 document.addEventListener('keyup', checkSelection, true);

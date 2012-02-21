@@ -3,9 +3,14 @@ body {
     margin: 2px;
 }
 
+.logo {
+    float: left;
+    margin: 0px 5px 5px 0px;
+}
+
 ._fi_initial_p {
-    padding: 0px;
-    margin: 0px;
+    padding-top: 0px;
+    margin-top: 0px;
 }
 
 .fluidinfoDiv {
