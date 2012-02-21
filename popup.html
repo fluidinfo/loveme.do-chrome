@@ -14,40 +14,16 @@
     <div id="_fi_tag" class="fluidinfoDiv">
       <p class="_fi_initial_p">
       <a href="http://fluidinfo.com" target="_blank"><img src="fi_32.png" class="logo"/></a>
-      <a id="_fi_link" href="#" target="_blank">Visit this URL in Fluidinfo.</a>
-      <span id="_fi_thing"> | <a id="_fi_thing_link" href="#" target="_blank">#</a></span>
-      </p>
-      <p>
-        Complete whichever of the following sections are relevant, then click Save below. All sections
-        are optional.
+        Fill in anything below, then click Save. All sections are optional.
       </p>
       <form>
         <table>
           <tbody>
 
-            <!-- Regular tag with name and value on this URL. -->
-            <tr>
-              <td>
-                Tag this URL (value is optional):
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>Tag&nbsp;name</td>
-                      <td><input type="text" id="tagName1" /></td>
-                    </tr>
-                    <tr>
-                      <td>Tag&nbsp;value</td>
-                      <td><input type="text" id="tagValue" /></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-
             <!-- Keywords (tags with no value) on this URL. -->
             <tr>
               <td>
-                Keywords (tags with no value) for this URL (separated by spaces):
+                Keywords (separate with spaces):
                 <input type="text" id="keywords" />
               </td>
             </tr>
@@ -84,20 +60,39 @@
               </td>
             </tr>
 
-            <!-- Tag any object with this URL as the value. -->
+            <!-- Regular tag with name and value on this URL. -->
             <tr>
               <td>
-                Use this URL as a tag value for something:
+                Add other info:
                 <table>
                   <tbody>
                     <tr>
-                      <td>Tag&nbsp;name</td>
+                      <td>Description (no spaces)</td>
+                      <td><input type="text" id="tagName1" /></td>
+                    </tr>
+                    <tr>
+                      <td>Value (optional)</td>
+                      <td><input type="text" id="tagValue" /></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Tag any object with this URL as the value. -->
+            <tr>
+              <td>
+                Add this URL to something in Fluidinfo. E.g., to a user's @name
+                <table>
+                  <tbody>
+                    <tr>
+                      <td>Description (no spaces)</td>
                       <td>
                         <input type="text" id="tagName2" />
                       </td>
                     </tr>
                     <tr>
-                      <td>Thing</td>
+                      <td>Add it to</td>
                       <td>
                         <input type="text" id="about" />
                       </td>

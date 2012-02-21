@@ -476,10 +476,6 @@ function fi_init(){
                 document.getElementById('_fi_not_logged_in').style.display = 'none';
                 document.getElementById('_fi_tag').style.display = '';
 
-                // Update the URL link at the top of the popup.
-                var a = document.getElementById('_fi_link');
-                a.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(tab.url);
-
                 // Populate the popup with known values of certain simple tags, if those
                 // tags have values already on the Fluidinfo object for the URL.
                 var tags = [ 'comment', 'like', 'rating', 'read-later' ];
