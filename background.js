@@ -2,6 +2,8 @@ var base = 'http://fluidinfo.com/about/';
 var defaultAbout = '@fluidinfo';
 var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
+var currentSelection = null;
+var tabThatCreatedCurrentSelection = null;
 
 // Things we consider as possibly being an about value that's a
 // corresponds to a fluidinfo user that's being followed, e.g.,
@@ -180,6 +182,35 @@ var removeContextMenuItemsByContext = function(context){
     }
 };
 
+var createSelectionNotification = function(about, selectionType){
+    displayNotifications({
+        about: about,
+        tabId: 'selection-' + selectionType,
+        updateBadge: false
+    });
+};
+
+var createSelectionNotifications = function(text){
+    var lowercase = settings.get('lowercase');
+    var didOriginal = false;
+    if (lowercase === 'original' || lowercase === 'both'){
+        didOriginal = true;
+        createSelectionNotification(text, 'original');
+    }
+    if (lowercase === 'lower' || lowercase === 'both'){
+        var lower = text.toLowerCase();
+        if (didOriginal === false || lower !== text){
+            createSelectionNotification(lower, 'lower');
+        }
+    }
+};
+
+var removeSelectionNotifications = function(){
+    deleteAllNotificationsForTab('selection-original');
+    deleteAllNotificationsForTab('selection-lower');
+    tabThatCreatedCurrentSelection = null;
+};
+
 
 // Listen for incoming messages with events (link mouseover, link
 // mouseout, selection set/cleared), and update the context menu.
@@ -188,11 +219,22 @@ chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'context'){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
-                removeContextMenuItemsByContext('selection');
-                addContextMenuItem(msg.selection, 'selection', 'selection');
+                if (currentSelection === null || msg.selection !== currentSelection){
+                    currentSelection = msg.selection;
+                    removeContextMenuItemsByContext('selection');
+                    addContextMenuItem(currentSelection, 'selection', 'selection');
+                    createSelectionNotifications(currentSelection);
+                    chrome.tabs.getSelected(null, function(tab){
+                        tabThatCreatedCurrentSelection = tab.id;
+                    });
+                }
             }
             else if (msg.selectionCleared){
-                removeContextMenuItemsByContext('selection');
+                if (currentSelection !== null){
+                    currentSelection = null;
+                    removeContextMenuItemsByContext('selection');
+                    removeSelectionNotifications();
+                }
             }
             else if (msg.mouseout){
                 // The mouse moved off a link so clear all link-related context
@@ -538,12 +580,7 @@ var deleteNotificationForTab = function(tabId, type){
     }
 };
 
-chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
-    deleteValuesCacheForTab(tabId);
-    deleteAllNotificationsForTab(tabId);
-});
-
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+var displayNotifications = function(options){
     // If the user isn't logged in, do nothing.
     if (fluidinfoAPI === undefined){
         setFluidinfoAPIFromSettings();
@@ -551,33 +588,165 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             return;
         }
     }
-    if (changeInfo.status === 'loading'){
-        var url = tab.url;
-        deleteValuesCacheForTab(tabId);
-        deleteAllNotificationsForTab(tabId);
-        valuesCache[tabId] = {
-            tagPaths: {}, // Will be filled in in onSuccess, below.
-            valuesCache: makeTagValueHandler({
-                about: url,
-                session: fluidinfoAPI
-            })
-        };
+    var tabId = options.tabId;
+    var about = options.about;
+    var updateBadge = options.updateBadge;
+
+    deleteValuesCacheForTab(tabId);
+    deleteAllNotificationsForTab(tabId);
+    valuesCache[tabId] = {
+        tagPaths: {}, // Will be filled in in onSuccess, below.
+        valuesCache: makeTagValueHandler({
+            about: about,
+            session: fluidinfoAPI
+        })
+    };
+
+    var onError = function(result){
+        console.log('Got error from Fluidinfo fetching tags for about ' + about);
+        console.log(result);
+    };
+
+    var showUsersTags = function(result){
+        var username = settings.get('username');
+        var tagPaths = result.data.tagPaths;
+        var wantedTags = [];
+        for (var i = 0; i < tagPaths.length; i++){
+            var tagPath = tagPaths[i];
+            valuesCache[tabId].tagPaths[tagPath] = true;
+            var namespace = tagPath.slice(0, tagPath.indexOf('/'));
+            if (namespace === username){
+                // This is one of the user's tags.
+                wantedTags.push(tagPath);
+            }
+        }
+
+        if (wantedTags.length > 0){
+            valuesCache[tabId].valuesCache.get({
+                onError: function(response){
+                    console.log('Fluidinfo API call failed:');
+                    console.log(response);
+                },
+                onSuccess: function(){
+                    if (updateBadge){
+                        chrome.browserAction.setBadgeText({
+                            tabId: tabId,
+                            text: '' + wantedTags.length
+                        });
+                        chrome.browserAction.setBadgeBackgroundColor({
+                            color: [255, 0, 0, 255],
+                            tabId: tabId
+                        });
+                    }
+
+                    createNotification(tabId, 'user');
+
+                    var timeout = settings.get('notificationTimeout');
+                    if (timeout){
+                        var hide = function(){
+                            deleteNotificationForTab(tabId, 'user');
+                        };
+                        if (! timeouts.hasOwnProperty(tabId)){
+                            timeouts[tabId] = {};
+                        }
+                        timeouts[tabId].user = setTimeout(hide, timeout * 1000);
+                    }
+
+                    var populate = function(){
+                        var found = false;
+                        var info = tabId + '_user';
+                        chrome.extension.getViews({type: 'notification'}).forEach(function(win){
+                            // Populate any new notification window (win._fluidinfo_info undefined)
+                            // or re-populate if win._fluidinfo_info is the current tabId (in which
+                            // case we are processing a reload).
+                            if (!found &&
+                                (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
+                                if (win.populate){
+                                    win._fluidinfo_info = info;
+                                    win.populate({
+                                        dropNamespaces: true,
+                                        title: 'Your info for',
+                                        about: about,
+                                        valuesCache: valuesCache[tabId].valuesCache,
+                                        wantedTags: wantedTags
+                                    });
+                                    found = true;
+                                }
+                            }
+                        });
+
+                        if (!found){
+                            setTimeout(populate, 50);
+                        }
+                    };
+
+                    setTimeout(populate, 50);
+                },
+                tags: wantedTags
+            });
+        }
+        else {
+            // The user has no tags on the object for the current about value.
+            if (updateBadge){
+                chrome.browserAction.setBadgeText({
+                    tabId: tabId,
+                    text: ''
+                });
+                chrome.browserAction.setBadgeBackgroundColor({
+                    color: [0, 0, 0, 255],
+                    tabId: tabId
+                });
+            }
+        }
+    };
+
+    var showFolloweeTags = function(result){
+        var username = settings.get('username');
 
         var onError = function(result){
-            console.log('Got error from Fluidinfo fetching tags for URL ' + url);
-            console.log(result);
+            if (result.status === 404 &&
+                result.headers['X-FluidDB-Error-Class'] === 'TNonexistentTag' &&
+                result.headers['X-FluidDB-Path'] === username + '/follows'){
+                    // The user doesn't have a username/follows tag. No problem.
+            }
+            else {
+                console.log('Got error from Fluidinfo fetching follows tag for ' + username);
+                console.log(result);
+            }
         };
 
-        var showUsersTags = function(result){
-            var username = settings.get('username');
+        var onSuccess = function(following){
+            var followees = {};
+            var i;
+
+            // Get the name part of all about values that look like "@name"
+            // as these can be considered a user that this user is following.
+            var userIsFollowingSomething = false;
+            var data = following.data;
+            for (i = 0; i < data.length; i++){
+                var match = userAboutRegex.exec(data[i]['fluiddb/about']);
+                if (match !== null){
+                    var what = match[1].toLowerCase();
+                    if (what !== username){
+                        followees[what] = true;
+                        userIsFollowingSomething = true;
+                    }
+                }
+            }
+
+            if (!userIsFollowingSomething){
+                return;
+            }
+
+            // Look at the tags on the object and get the ones that have namespaces
+            // that correspond to things the user is following.
             var tagPaths = result.data.tagPaths;
             var wantedTags = [];
-            for (var i = 0; i < tagPaths.length; i++){
+            for (i = 0; i < tagPaths.length; i++){
                 var tagPath = tagPaths[i];
-                valuesCache[tabId].tagPaths[tagPath] = true;
                 var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-                if (namespace === username){
-                    // This is one of the user's tags.
+                if (followees.hasOwnProperty(namespace)){
+                    // This is one of the user's followees tags.
                     wantedTags.push(tagPath);
                 }
             }
@@ -587,33 +756,25 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                     onError: function(response){
                         console.log('Fluidinfo API call failed:');
                         console.log(response);
-                        },
+                    },
                     onSuccess: function(){
-                        chrome.browserAction.setBadgeText({
-                            tabId: tabId,
-                            text: '' + wantedTags.length
-                        });
-                        chrome.browserAction.setBadgeBackgroundColor({
-                            color: [255, 0, 0, 255],
-                            tabId: tabId
-                        });
 
-                        createNotification(tabId, 'user');
+                        createNotification(tabId, 'followees');
 
                         var timeout = settings.get('notificationTimeout');
                         if (timeout){
                             var hide = function(){
-                                deleteNotificationForTab(tabId, 'user');
+                                deleteNotificationForTab(tabId, 'followees');
                             };
                             if (! timeouts.hasOwnProperty(tabId)){
                                 timeouts[tabId] = {};
                             }
-                            timeouts[tabId].user = setTimeout(hide, timeout * 1000);
+                            timeouts[tabId].followees = setTimeout(hide, timeout * 1000);
                         }
 
                         var populate = function(){
                             var found = false;
-                            var info = tabId + '_user';
+                            var info = tabId + '_followees';
                             chrome.extension.getViews({type: 'notification'}).forEach(function(win){
                                 // Populate any new notification window (win._fluidinfo_info undefined)
                                 // or re-populate if win._fluidinfo_info is the current tabId (in which
@@ -623,9 +784,9 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                                     if (win.populate){
                                         win._fluidinfo_info = info;
                                         win.populate({
-                                            dropNamespaces: true,
-                                            title: 'Your info for',
-                                            url: url,
+                                            dropNamespaces: false,
+                                            title: 'People you follow have added info to',
+                                            about: about,
                                             valuesCache: valuesCache[tabId].valuesCache,
                                             wantedTags: wantedTags
                                         });
@@ -644,146 +805,44 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                     tags: wantedTags
                 });
             }
-            else {
-                // The user has no tags on this URL.
-                chrome.browserAction.setBadgeText({
-                    tabId: tabId,
-                    text: ''
-                });
-                chrome.browserAction.setBadgeBackgroundColor({
-                    color: [0, 0, 0, 255],
-                    tabId: tabId
-                });
-            }
         };
 
-        var showFolloweeTags = function(result){
-            var username = settings.get('username');
-
-            var onError = function(result){
-                if (result.status === 404 &&
-                    result.headers['X-FluidDB-Error-Class'] === 'TNonexistentTag' &&
-                    result.headers['X-FluidDB-Path'] === username + '/follows'){
-                        // The user doesn't have a username/follows tag. No problem.
-                }
-                else {
-                    console.log('Got error from Fluidinfo fetching follows tag for ' + username);
-                    console.log(result);
-                }
-            };
-
-            var onSuccess = function(following){
-                var followees = {};
-                var i;
-
-                // Get the name part of all about values that look like "@name"
-                // as these can be considered a user that this user is following.
-                var userIsFollowingSomething = false;
-                var data = following.data;
-                for (i = 0; i < data.length; i++){
-                    var about = data[i]['fluiddb/about'];
-                    var match = userAboutRegex.exec(about);
-                    if (match !== null){
-                        var what = match[1].toLowerCase();
-                        if (what !== username){
-                            followees[what] = true;
-                            userIsFollowingSomething = true;
-                        }
-                    }
-                }
-
-                if (!userIsFollowingSomething){
-                    return;
-                }
-
-                // Look at the tags on the object and get the ones that have namespaces
-                // that correspond to things the user is following.
-                var tagPaths = result.data.tagPaths;
-                var wantedTags = [];
-                for (i = 0; i < tagPaths.length; i++){
-                    var tagPath = tagPaths[i];
-                    var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-                    if (followees.hasOwnProperty(namespace)){
-                        // This is one of the user's followees tags.
-                        wantedTags.push(tagPath);
-                    }
-                }
-
-                if (wantedTags.length > 0){
-                    valuesCache[tabId].valuesCache.get({
-                        onError: function(response){
-                            console.log('Fluidinfo API call failed:');
-                            console.log(response);
-                            },
-                        onSuccess: function(){
-
-                            createNotification(tabId, 'followees');
-
-                            var timeout = settings.get('notificationTimeout');
-                            if (timeout){
-                                var hide = function(){
-                                    deleteNotificationForTab(tabId, 'followees');
-                                };
-                                if (! timeouts.hasOwnProperty(tabId)){
-                                    timeouts[tabId] = {};
-                                }
-                                timeouts[tabId].followees = setTimeout(hide, timeout * 1000);
-                            }
-
-                            var populate = function(){
-                                var found = false;
-                                var info = tabId + '_followees';
-                                chrome.extension.getViews({type: 'notification'}).forEach(function(win){
-                                    // Populate any new notification window (win._fluidinfo_info undefined)
-                                    // or re-populate if win._fluidinfo_info is the current tabId (in which
-                                    // case we are processing a reload).
-                                    if (!found &&
-                                        (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
-                                        if (win.populate){
-                                            win._fluidinfo_info = info;
-                                            win.populate({
-                                                dropNamespaces: false,
-                                                title: 'People you follow have added info to',
-                                                url: url,
-                                                valuesCache: valuesCache[tabId].valuesCache,
-                                                wantedTags: wantedTags
-                                            });
-                                            found = true;
-                                        }
-                                    }
-                                });
-
-                                if (!found){
-                                    setTimeout(populate, 50);
-                                }
-                            };
-
-                            setTimeout(populate, 50);
-                        },
-                        tags: wantedTags
-                    });
-                }
-            };
-
-            // Get the about values from the objects the user follows.
-            fluidinfoAPI.query({
-                select: ['fluiddb/about'],
-                where: ['has ' + username + '/follows' ],
-                onError: onError,
-                onSuccess: onSuccess
-            });
-        };
-
-        var onSuccess = function(result){
-            showUsersTags(result);
-            showFolloweeTags(result);
-        };
-
-        // Pull back tag paths on the object for the current URL.
-        fluidinfoAPI.api.get({
-            path: ['about', url],
+        // Get the about values from the objects the user follows.
+        fluidinfoAPI.query({
+            select: ['fluiddb/about'],
+            where: ['has ' + username + '/follows' ],
             onError: onError,
             onSuccess: onSuccess
+        });
+    };
+
+    var onSuccess = function(result){
+        showUsersTags(result);
+        showFolloweeTags(result);
+    };
+
+    // Pull back tag paths on the object for the current about value.
+    fluidinfoAPI.api.get({
+        path: ['about', about],
+        onError: onError,
+        onSuccess: onSuccess
+    });
+};
+
+chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
+    deleteValuesCacheForTab(tabId);
+    deleteAllNotificationsForTab(tabId);
+    if (tabId === tabThatCreatedCurrentSelection){
+        removeSelectionNotifications();
+    }
+});
+
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+    if (changeInfo.status === 'loading'){
+        displayNotifications({
+            about: tab.url,
+            tabId: tabId,
+            updateBadge: true
         });
     }
 });

@@ -1,26 +1,33 @@
 var populate = function(options){
     /*
-     * options contains dropNamespaces, title, url, valuesCache, wantedTags
+     * options contains about, dropNamespaces, title, valuesCache, wantedTags
      */
-    var url = options.url;
+    var about = options.about;
 
-    var truncatedURL;
-    if (url.length > 48){
-        truncatedURL = url.slice(0, 48) + '...';
+    var truncatedAbout;
+    if (about.length > 48){
+        truncatedAbout = about.slice(0, 48) + '...';
     }
     else {
-        truncatedURL = url;
+        truncatedAbout = about;
     }
 
-    // Chop off useless https?:// prefix.
-    var match = truncatedURL.indexOf('://');
-    if (match > -1){
-        truncatedURL = truncatedURL.slice(match + 3);
+    var url;
+    if (valueUtils.isLink(about)){
+        url = about;
+        // Chop off useless https?:// prefix.
+        var match = truncatedAbout.indexOf('://');
+        if (match > -1 && match < 6){
+            truncatedAbout = truncatedAbout.slice(match + 3);
+        }
+    }
+    else {
+        url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
     }
 
     document.getElementById('fi_url').innerHTML = Mustache.render(
-        '<a href="{{url}}" target="_blank">{{truncatedURL}}</a>', {
-            truncatedURL: truncatedURL,
+        '<a href="{{url}}" target="_blank">{{truncatedAbout}}</a>', {
+            truncatedAbout: truncatedAbout,
             url: url
         }
     );
