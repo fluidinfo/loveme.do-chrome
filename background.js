@@ -4,7 +4,8 @@ var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
 
 // Things we consider as possibly being an about value that's a
-// (in a loose sense) a friend. E.g., '@username' or '@wordnik.com'.
+// corresponds to a fluidinfo user that's being followed, e.g.,
+// '@username' or '@wordnik.com'.
 var userAboutRegex = /^@([\w\.]+)$/;
 
 // -----------------  Settings -----------------
@@ -567,7 +568,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             console.log(result);
         };
 
-        var showUserTags = function(result){
+        var showUsersTags = function(result){
             var username = settings.get('username');
             var tagPaths = result.data.tagPaths;
             var wantedTags = [];
@@ -656,23 +657,23 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             }
         };
 
-        var showFriendTags = function(result){
+        var showFolloweeTags = function(result){
             var username = settings.get('username');
 
             var onError = function(result){
                 if (result.status === 404 &&
                     result.headers['X-FluidDB-Error-Class'] === 'TNonexistentTag' &&
-                    result.headers['X-FluidDB-Path'] === username + '/following'){
-                        // The user doesn't have a username/following tag. No problem.
+                    result.headers['X-FluidDB-Path'] === username + '/follows'){
+                        // The user doesn't have a username/follows tag. No problem.
                 }
                 else {
-                    console.log('Got error from Fluidinfo fetching following tag for ' + username);
+                    console.log('Got error from Fluidinfo fetching follows tag for ' + username);
                     console.log(result);
                 }
             };
 
             var onSuccess = function(following){
-                var friends = {};
+                var followees = {};
                 var i;
 
                 // Get the name part of all about values that look like "@name"
@@ -685,7 +686,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                     if (match !== null){
                         var what = match[1].toLowerCase();
                         if (what !== username){
-                            friends[what] = true;
+                            followees[what] = true;
                             userIsFollowingSomething = true;
                         }
                     }
@@ -702,8 +703,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                 for (i = 0; i < tagPaths.length; i++){
                     var tagPath = tagPaths[i];
                     var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-                    if (friends.hasOwnProperty(namespace)){
-                        // This is one of the user's friends tags.
+                    if (followees.hasOwnProperty(namespace)){
+                        // This is one of the user's followees tags.
                         wantedTags.push(tagPath);
                     }
                 }
@@ -716,22 +717,22 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                             },
                         onSuccess: function(){
 
-                            createNotification(tabId, 'friends');
+                            createNotification(tabId, 'followees');
 
                             var timeout = settings.get('notificationTimeout');
                             if (timeout){
                                 var hide = function(){
-                                    deleteNotificationForTab(tabId, 'friends');
+                                    deleteNotificationForTab(tabId, 'followees');
                                 };
                                 if (! timeouts.hasOwnProperty(tabId)){
                                     timeouts[tabId] = {};
                                 }
-                                timeouts[tabId].friends = setTimeout(hide, timeout * 1000);
+                                timeouts[tabId].followees = setTimeout(hide, timeout * 1000);
                             }
 
                             var populate = function(){
                                 var found = false;
-                                var info = tabId + '_friends';
+                                var info = tabId + '_followees';
                                 chrome.extension.getViews({type: 'notification'}).forEach(function(win){
                                     // Populate any new notification window (win._fluidinfo_info undefined)
                                     // or re-populate if win._fluidinfo_info is the current tabId (in which
@@ -742,7 +743,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                                             win._fluidinfo_info = info;
                                             win.populate({
                                                 dropNamespaces: false,
-                                                title: 'Friends info for',
+                                                title: 'People you follow have added info to',
                                                 url: url,
                                                 valuesCache: valuesCache[tabId].valuesCache,
                                                 wantedTags: wantedTags
@@ -767,15 +768,15 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             // Get the about values from the objects the user follows.
             fluidinfoAPI.query({
                 select: ['fluiddb/about'],
-                where: ['has ' + username + '/following' ],
+                where: ['has ' + username + '/follows' ],
                 onError: onError,
                 onSuccess: onSuccess
             });
         };
 
         var onSuccess = function(result){
-            showUserTags(result);
-            showFriendTags(result);
+            showUsersTags(result);
+            showFolloweeTags(result);
         };
 
         // Pull back tag paths on the object for the current URL.
