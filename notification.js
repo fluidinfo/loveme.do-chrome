@@ -2,7 +2,6 @@ var populate = function(options){
     /*
      * options contains about, dropNamespaces, title, valuesCache, wantedTags
      */
-    console.log(options);
     var about = options.about;
 
     var truncatedAbout;
