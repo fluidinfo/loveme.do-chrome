@@ -311,10 +311,10 @@ var valueUtils = {
                 '<span class="tagName">');
 
             if (options.linkTags){
-                template += '<a target="_blank" class="taglink" href="http://fluidinfo.com/about/#!/{{encodedPath}}/tagged_objects">{{path}}:</a>';
+                template += '<a target="_blank" class="taglink" href="http://fluidinfo.com/about/#!/{{encodedPath}}/tagged_objects">{{path}}{{#possibleColon}}{{{value}}}{{/possibleColon}}</a>';
             }
             else {
-                template += '{{path}}:';
+                template += '{{path}}{{#possibleColon}}{{{value}}}{{/possibleColon}}';
             }
 
             template += '</span>'; // Tag name
@@ -323,9 +323,7 @@ var valueUtils = {
                 template += '<span class="timestamp">{{timestamp}}</span>';
             }
 
-            template += ('</div>' +
-                         '<div class="tagAndValue">{{{value}}}</div>'
-            );
+            template += '{{#valueSection}}{{{value}}}{{/valueSection}}';
 
             template += ('</div>' + // tagDisplay
                          '</div>' // tagItem
@@ -341,7 +339,22 @@ var valueUtils = {
             callbacks: callbacks,
             content: Mustache.to_html(template, {
                 data: pathsAndValues,
-                bullet: "tagBullet.png"
+                bullet: 'tagBullet.png',
+                possibleColon: function(){
+                    return function(value, render){
+                        return render(value === '' ? '' : ':');
+                    };
+                },
+                valueSection: function(){
+                    return function(value, render){
+                        if (value.slice(0, 3) === '<ul'){
+                            return render('</div><div class="tagAndValue">' + value + '</div>');
+                        }
+                        else {
+                            return render(' ' + value + '</div>');
+                        }
+                    };
+                }
             })
         };
     },
@@ -360,7 +373,7 @@ var valueUtils = {
             if (rating >= k) {
                 out += ' star-rating-hover';
             }
-            out += '"><a title="on">on</a></div>';
+            out += '"><a style="font-size: 15px;" title="on">&nbsp;&nbsp;&nbsp;&nbsp;</a></div>';
         }
 
         return out;

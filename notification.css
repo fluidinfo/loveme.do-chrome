@@ -55,7 +55,7 @@ a {
 }
 
 .tagDisplay {
-    padding: 8px;
+    padding: 6px;
     border: 1px solid #6fd5fa;
     -webkit-border-radius: 13px;
     -webkit-border-top-right-radius: 5px;
@@ -78,8 +78,6 @@ a {
 /* To run booleans and numbers on a single line */
 .tagName{
     margin-top: -2px;
-    padding-right: 4px;
     padding-bottom: 4px;
     font-weight: bold;
-    padding-right: 8px;
 }
