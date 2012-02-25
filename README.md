@@ -24,7 +24,9 @@ You must be logged in to add info. Click the Login tab on the left of the Option
 SEE INFO
 --------
 
-When you navigate to a page you've added to, a popup will appear to show you your info.  The extension icon will also display a count of the number of pieces of info you've added to the page.  Soon we'll also show you what your friends have added to pages.
+When you navigate to a page you've added to, a popup will appear to show you your info.  The extension icon will also display a count of the number of pieces of info you've added to the page.  If you have 'follows' tags on other Fluidinfo @usernames and they have tagged the URL, a popup will show their tags too.
+
+And if you select text and you or the people you follow have tags for that in Fluidinfo, a popup will show you that information too.
 
 JUMP
 ----
