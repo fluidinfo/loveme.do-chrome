@@ -106,112 +106,90 @@ var makeTagValueHandler = function(options){
             };
         };
 
-        var createSuccessCallback = function(wantedTags){
-            /*
-             *  Create a success function that can deal with the result of calling
-             *  Fluidinfo call to get tags.
-             *
-             *  param wantedTags: a list of tags that the API call fetched.
-             *
-             *  return: a function that compares the passed wanted tags against those
-             *  listed as wanted by the waiter. The function calls the onSuccess
-             *  functions of all the waiters whose tags have all been fetched.
-             */
-            return function(result){
-                // Do nothing if we've moved on.
-                if (handler.ignoring){
-                    return;
-                }
+        var status = tagsStatus(options.tags);
 
-                var i;
+        var onSuccess = function(result){
+            // Do nothing if we've moved on.
+            if (handler.ignoring){
+                return;
+            }
 
-                // Mark all the tags just fetched as no longer in flight, as already
-                // fetched, and also add them to the value cache. Note that some
-                // of the tags that were requested might not have been on the object.
-                // In that case the cache will have an undefined entry for them but
-                // we'll know an attempt was made to get the value from the
-                // handler.fetched object.
-                for (i = 0; i < wantedTags.length; i++){
-                    var tag = wantedTags[i];
-                    delete handler.inFlight[tag];
-                    handler.fetched[tag] = true;
-                    handler.cache[tag] = result.data[tag];
-                }
+            var i;
+            var wantedTags = status.unseen;
 
-                // Make the result data be the the full cache.
-                result.data = handler.cache;
+            // Mark all the tags just fetched as no longer in flight, as already
+            // fetched, and also add them to the value cache. Note that some
+            // of the tags that were requested might not have been on the object.
+            // In that case the cache will have an undefined entry for them but
+            // we'll know an attempt was made to get the value from the
+            // handler.fetched object.
+            for (i = 0; i < wantedTags.length; i++){
+                var tag = wantedTags[i];
+                delete handler.inFlight[tag];
+                handler.fetched[tag] = true;
+                handler.cache[tag] = result.data[tag];
+            }
 
-                // Look at all waiters and call those that are now
-                // fully satisfied.
-                for (i = 0; i < handler.waiters.length; i++){
-                    var waiter = handler.waiters[i];
-                    if (waiter !== null){
-                        var status = tagsStatus(waiter.tags);
-                        if (status.fetched.length === waiter.tags.length){
-                            // All wanted tags have already been fetched. Call the
-                            // onSuccess callback and remove the entry from the
-                            // waiters array.
-                            waiter.onSuccess(result);
-                            handler.waiters[i] = null;
-                        }
+            // Make the result data be the the full cache.
+            result.data = handler.cache;
+
+            // Look at all waiters and call those that are now
+            // fully satisfied.
+            for (i = 0; i < handler.waiters.length; i++){
+                var waiter = handler.waiters[i];
+                if (waiter !== null){
+                    var waiterStatus = tagsStatus(waiter.tags);
+                    if (waiterStatus.fetched.length === waiter.tags.length){
+                        // All wanted tags have already been fetched. Call the
+                        // onSuccess callback and remove the entry from the
+                        // waiters array.
+                        waiter.onSuccess(result);
+                        handler.waiters[i] = null;
                     }
                 }
-            };
+            }
         };
 
-        var createErrorCallback = function(wantedTags){
-            /*
-             * Create an errback function that can deal with an error in a
-             * Fluidinfo call to get tags.
-             *
-             * param wantedTags: a list of tags that the API call tried to fetch.
-             *
-             * return: a function that compares the passed wanted tags against those
-             * listed as wanted by the waiter. The function calls the onError
-             * functions of all the waiters that wanted any of the tags that we
-             * were just unable to fetch.
-             */
-            return function(result){
-                // Do nothing if we've moved on.
-                if (handler.ignoring){
-                    return;
-                }
+        var onError = function(result){
+            // Do nothing if we've moved on.
+            if (handler.ignoring){
+                return;
+            }
 
-                var i;
+            var i;
+            var wantedTags = status.unseen;
 
-                // Mark all the tags in the API call as now no longer being in flight.
-                for (i = 0; i < wantedTags.length; i++){
-                    delete handler.inFlight[wantedTags[i]];
-                }
-                // Call the error function on any waiters that asked for one of the
-                // tags in wantedTags.
-                for (i = 0; i < handler.waiters.length; i++){
-                    var waiter = handler.waiters[i];
-                    if (waiter !== null){
-                        var requestedTags = waiter.tags;
-                        outerLoop:
-                        for (var j = 0; j < requestedTags.length; j++){
-                            var requestedTag = requestedTags[j];
-                            for (var k = 0; k < wantedTags.length; k++){
-                                if (requestedTag === wantedTags[k]){
-                                    // A requested tag was in the API call that got an error.
-                                    // Call its error function and set this slot of the waiters
-                                    // list to null.
-                                    if (typeof waiter.onError === 'function'){
-                                        waiter.onError(result);
-                                    }
-                                    handler.waiters[i] = null;
-                                    // Break out 2 levels to move onto the next waiter.
-                                    break outerLoop;
+            // Mark all the tags in the API call as now no longer being in flight.
+            for (i = 0; i < wantedTags.length; i++){
+                delete handler.inFlight[wantedTags[i]];
+            }
+            // Call the error function on any waiters that asked for one of the
+            // tags in wantedTags.
+            for (i = 0; i < handler.waiters.length; i++){
+                var waiter = handler.waiters[i];
+                if (waiter !== null){
+                    var requestedTags = waiter.tags;
+                    outerLoop:
+                    for (var j = 0; j < requestedTags.length; j++){
+                        var requestedTag = requestedTags[j];
+                        for (var k = 0; k < wantedTags.length; k++){
+                            if (requestedTag === wantedTags[k]){
+                                // A requested tag was in the API call that got an error.
+                                // Call its error function and set this slot of the waiters
+                                // list to null.
+                                if (typeof waiter.onError === 'function'){
+                                    waiter.onError(result);
                                 }
+                                handler.waiters[i] = null;
+                                // Break out 2 levels to move onto the next waiter.
+                                break outerLoop;
                             }
                         }
                     }
                 }
-            };
+            }
         };
 
-        var status = tagsStatus(options.tags);
         if (status.fetched.length === options.tags.length){
             // All wanted tags have already been fetched. Call
             // the success callback and we're done.
@@ -245,8 +223,8 @@ var makeTagValueHandler = function(options){
         // cached and not already in-flight in another request).
         handler.session.getObject({
             about: handler.about,
-            onError: createErrorCallback(status.unseen),
-            onSuccess: createSuccessCallback(status.unseen),
+            onError: onError,
+            onSuccess: onSuccess,
             select: status.unseen
         });
     };
@@ -273,6 +251,7 @@ var makeTagValueHandler = function(options){
                 for (tagName in tagNamesAndValues){
                     if (tagNamesAndValues.hasOwnProperty(tagName)){
                         handler.cache[tagName] = tagNamesAndValues[tagName];
+                        handler.fetched[tagName] = true;
                     }
                 }
                 options.onSuccess && options.onSuccess(result);
@@ -283,12 +262,12 @@ var makeTagValueHandler = function(options){
 
     handler.remove = function(options){
         /*
-         * Remove a tag value from Fluidinfo and (if successful) the cache.
+         * Remove tag values from Fluidinfo and (if successful) the cache.
          *
          * options contains:
          *     onError: (optional) an errback function.
          *     onSuccess: (optional) a success function.
-         *     tags: the paths to the tags whose values should be removed.
+         *     tags: a list of paths to the tags whose values should be removed.
          */
 
         handler.session.del({
@@ -297,7 +276,10 @@ var makeTagValueHandler = function(options){
                 options.onError && options.onError(result);
             },
             onSuccess: function(result){
-                delete handler.cache[options.tag];
+                var tags = options.tags;
+                for (var i = 0; i < tags.length; i++){
+                    delete handler.cache[tags[i]];
+                }
                 options.onSuccess && options.onSuccess(result);
             },
             tags: options.tags,
