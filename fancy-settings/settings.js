@@ -25,6 +25,10 @@ window.addEvent('domready', function (){
 
         checkValid();
 
+        settings.manifest.username.addEvent('action', function (value){
+            checkValid();
+        });
+
         settings.manifest.password.addEvent('action', function (value){
             checkValid();
         });
