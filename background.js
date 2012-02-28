@@ -32,7 +32,7 @@ chrome.omnibox.onInputEntered.addListener(function(text){
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggest){
-    var username = settings.get('username');
+    var username = settings.get('username').toLowerCase();
 
     if (username &&
             ((text === username.slice(0, text.length)) ||
@@ -319,7 +319,7 @@ var setFluidinfoAPIFromSettings = function(){
     // Set the global fluidinfoAPI variable using credentials found in
     // the settings, if possible. If credentials cannot be found, do
     // nothing (callers can check fluidinfoAPI).
-    var username = settings.get('username');
+    var username = settings.get('username').toLowerCase();
     var password = settings.get('password');
     if (username && password){
         fluidinfoAPI = fluidinfo({
@@ -335,7 +335,7 @@ chrome.extension.onRequest.addListener(
             sendResponse(settings.toObject());
         }
         else if (request.action === 'validate'){
-            var username = settings.get('username');
+            var username = settings.get('username').toLowerCase();
             var password = settings.get('password');
             if (!(username && password)){
                 sendResponse({
@@ -372,7 +372,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = settings.get('username');
+            var username = settings.get('username').toLowerCase();
             var values = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
@@ -408,7 +408,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = settings.get('username');
+            var username = settings.get('username').toLowerCase();
             var tagNamesAndValues = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
@@ -443,7 +443,7 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            var username = settings.get('username');
+            var username = settings.get('username').toLowerCase();
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
                 var tag = request.tags[i];
@@ -479,7 +479,7 @@ chrome.extension.onRequest.addListener(
             // Figure out what tags to retrieve, based on the list of tags we already
             // know are on the object. This avoids asking Fluidinfo for things we
             // already know don't exist.
-            var username = settings.get('username');
+            var username = settings.get('username').toLowerCase();
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
                 var tag = username + '/' + request.tags[i];
@@ -608,7 +608,7 @@ var displayNotifications = function(options){
     };
 
     var showUsersTags = function(result){
-        var username = settings.get('username');
+        var username = settings.get('username').toLowerCase();
         var tagPaths = result.data.tagPaths;
         var wantedTags = [];
         for (var i = 0; i < tagPaths.length; i++){
@@ -701,7 +701,7 @@ var displayNotifications = function(options){
     };
 
     var showFolloweeTags = function(result){
-        var username = settings.get('username');
+        var username = settings.get('username').toLowerCase();
 
         var onError = function(result){
             if (result.status === 404 &&

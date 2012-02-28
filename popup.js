@@ -116,6 +116,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -144,7 +145,9 @@ function save(tab, callback){
                 else {
                     allKeywordsValid = false;
                     ok = false;
-                    status("'" + keyword + "' is not a valid tag name, sorry.");
+                    var msg = "'" + keyword + "' is not a valid tag name, sorry.";
+                    status(msg);
+                    console.log(msg);
                 }
             }
         }
@@ -162,6 +165,7 @@ function save(tab, callback){
                 else {
                     ok = false;
                     status(response.message);
+                    console.log(response.message);
                 }
                 maybeRunCallback();
             });
@@ -205,6 +209,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -224,6 +229,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -266,6 +272,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -285,6 +292,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -294,10 +302,11 @@ function save(tab, callback){
     var rating = document.getElementById('rating');
     setValue = false;
     deleteValue = false;
+    var newRating = parseFluidinfoValue(rating.value);
 
     if (existingValues.rating !== undefined){
         // There was already a value.
-        if (existingValues.rating !== rating.value){
+        if (existingValues.rating !== newRating){
             // And the value has changed.
             if (rating.value){
                 setValue = true;
@@ -317,15 +326,16 @@ function save(tab, callback){
         chrome.extension.sendRequest({
             action: 'tag-current-url',
             tabId: tab.id,
-            tagNamesAndValues: { rating: parseFluidinfoValue(rating.value) }
+            tagNamesAndValues: { rating: newRating }
         }, function(response){
             if (response.success){
-                existingValues.rating = rating.value;
+                existingValues.rating = newRating;
                 status('Rating saved successfully.');
             }
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -340,11 +350,12 @@ function save(tab, callback){
             if (response.success){
                 delete existingValues.rating;
                 rating.value = '';
-                status('rating removed successfully.');
+                status('Rating removed successfully.');
             }
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -386,6 +397,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -405,6 +417,7 @@ function save(tab, callback){
             else {
                 ok = false;
                 status(response.message);
+                console.log(response.message);
             }
             maybeRunCallback();
         });
@@ -413,36 +426,63 @@ function save(tab, callback){
     // Tag any object with this URL as the value.
     var tagName2 = document.getElementById('tagName2');
     var about = document.getElementById('about');
-    if (tagName2.value && about.value){
-        var tagNamesAndValues = {};
-        tagNamesAndValues[tagName2.value] = tab.url;
-        fluidinfoCallsMade++;
-        chrome.extension.sendRequest({
-            action: 'tag',
-            tagNamesAndValues: tagNamesAndValues,
-            about: about.value
-        }, function(response){
-            if (response.success){
-                // Update object link.
-                status('URL set as "' + tagName2.value + '" on object for "' + about.value + '".');
-                tagName2.value = '';
-                about.value = '';
+    var tagName = trim(tagName2.value);
+    if (tagName && about.value){
+        if (/^[\w:\.-]+$/.test(tagName)){
+            var tagNamesAndValues = {};
+            tagNamesAndValues[tagName] = tab.url;
+            fluidinfoCallsMade++;
+            chrome.extension.sendRequest({
+                action: 'tag',
+                tagNamesAndValues: tagNamesAndValues,
+                about: about.value
+            }, function(response){
+                if (response.success){
+                    // Update object link.
+                    status('URL set as "' + tagName + '" on object for "' + about.value + '".');
+                    tagName2.value = '';
+                    about.value = '';
+                }
+                else {
+                    ok = false;
+                    status(response.message);
+                    console.log(response.message);
+                }
+                maybeRunCallback();
+            });
+        }
+        else {
+            if (tagName.indexOf(' ') > -1){
+                var msg = "You cannot have a space in the description, sorry.";
             }
             else {
-                ok = false;
-                status(response.message);
+                var msg = "'" + tagName2.value + "' is not a valid tag name, sorry.";
             }
-            maybeRunCallback();
-        });
+            status(msg);
+            console.log(msg);
+            ok = false;
+        }
     }
     else if (tagName2.value){
-        document.getElementById('_fi_thing').style.visibility = 'hidden';
-        status("You've set a tag name, but not filled in the thing to tag.");
+        if (/^[\w:\.-]+$/.test(tagName2.value)){
+            var msg = "You've set a description, but not told us what to add the link to.";
+        }
+        else {
+            if (tagName2.value.indexOf(' ') > -1){
+                var msg = "You cannot have a space in the description, sorry.";
+            }
+            else {
+                var msg = "'" + tagName2.value + "' is not a valid description, sorry.";
+            }
+        }
+        status(msg);
+        console.log(msg);
         ok = false;
     }
     else if (about.value){
-        document.getElementById('_fi_thing').style.visibility = 'hidden';
-        status("You've told us what to tag, but not what tag name to use.");
+        var msg = "You've told us what to add the link to, but not given a description.";
+        status(msg);
+        console.log(msg);
         ok = false;
     }
 
@@ -510,6 +550,7 @@ function fi_init(){
                     }
                     else {
                         status(response.message);
+                        console.log(response.message);
                     }
                 });
             }
