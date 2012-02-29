@@ -55,7 +55,7 @@ var checkSelection = function(event){
     var selection = window.getSelection().toString();
     if (selection){
         port.postMessage({
-            selection: selection
+            selection: selection.replace(/^\s+|\s+$/g, '')
         });
     } else {
         port.postMessage({
