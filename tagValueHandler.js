@@ -1,7 +1,3 @@
-var _quoteAbout = function(s){
-    return s.replace(/\"/g, '\"');
-};
-
 /*
  * makeTagValueHandler returns an object that can be used to make GET
  * requests to the Fluidinfo API to get tag values on a specific object.
@@ -53,7 +49,7 @@ var makeTagValueHandler = function(options){
      *        an error occurs.
      */
     var handler = {
-        about: options.about,
+        about: valueUtils.lowercaseAboutValue(options.about),
         cache: {},
         fetched: {},
         ignoring: false,
@@ -283,7 +279,7 @@ var makeTagValueHandler = function(options){
                 options.onSuccess && options.onSuccess(result);
             },
             tags: options.tags,
-            where: 'fluiddb/about = "' + _quoteAbout(handler.about) + '"'
+            where: 'fluiddb/about = "' + valueUtils.quoteAbout(handler.about) + '"'
         });
     };
 

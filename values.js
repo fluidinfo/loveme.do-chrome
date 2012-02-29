@@ -1,6 +1,45 @@
 var valueUtils = {
     tweetLinkRegex: /^https?:\/\/twitter.com\/.*\/status\/(\d+)$/,
     numberRegex: /^\s*[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?\s*$/,
+    uriRegex: /^([a-z][-+.a-z0-9]{0,11}):\/\/(.+)/i,
+    lowercaseAboutValue: function(str){
+        var match = this.uriRegex.exec(str);
+        if (match){
+            var scheme = match[1];
+            var postScheme = match[2];
+            var userpass = '';
+            var hostport = '';
+            var rest = '';
+            var slash = postScheme.indexOf('/');
+
+            if (slash > -1){
+                rest = postScheme.slice(slash);
+                var hierarchicalPart = postScheme.slice(0, slash);
+            }
+            else {
+                var hierarchicalPart = postScheme;
+            }
+
+            if (hierarchicalPart){
+                var at = hierarchicalPart.indexOf('@');
+                if (at > -1){
+                    userpass = hierarchicalPart.slice(0, at + 1);
+                    hostport = hierarchicalPart.slice(at + 1);
+                }
+                else {
+                    hostport = hierarchicalPart;
+                }
+            }
+
+            return scheme.toLowerCase() + '://' + userpass + hostport.toLowerCase() + rest;
+        }
+        else {
+            return str.toLowerCase();
+        }
+    },
+    quoteAbout: function(s){
+        return s.replace(/\"/g, '\"');
+    },
     isLink: function(str){
         // Return true if str looks like an https?:// link. Don't allow < or >
         // to appear, as a simple form of preventing html tags (like <script>)
