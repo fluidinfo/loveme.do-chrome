@@ -163,18 +163,6 @@ this.i18n = {
     'logout description': {
         'en': 'Click below to have the extension forget your username and password.'
     },
-    'lowercase description': {
-        'en': 'The Fluidinfo extension makes it trivial to jump from anything you ' +
-              'see on the screen to the page for that thing in Fluidinfo. For ' +
-              'example, if you see a name and you\'d like to add info ' +
-              'to it, select it with your mouse, right-click the selected ' +
-              'text, and use the context menu to jump to the name in Fluidinfo. ' +
-              '' +
-              'There is a strong convention in Fluidinfo to use lowercase names ' +
-              'where possible and convenient. So by default, the extension will ' +
-              'offer to take you to the lowercase version of linked or selected text. ' +
-              'You can customize that behavior below.'
-    },
     'notification description': {
         'en': 'When you have info stored for ' +
               'the web page you\'re looking at, the extension will pop up a small notification ' +

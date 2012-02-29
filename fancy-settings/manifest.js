@@ -89,25 +89,6 @@ this.manifest = {
         },
         {
             'tab': i18n.get('options'),
-            'group': i18n.get('Lower case'),
-            'name': 'lowercaseDescription',
-            'type': 'description',
-            'text': i18n.get('lowercase description')
-        },
-        {
-            'tab': i18n.get('options'),
-            'group': i18n.get('Lower case'),
-            'name': 'lowercase',
-            'type': 'radioButtons',
-            'label': 'For selected text and link text, offer:',
-            'options': [
-                ['lower', 'Just the lowercase text'],
-                ['original', 'Just the original text'],
-                ['both', 'Both']
-            ]
-        },
-        {
-            'tab': i18n.get('options'),
             'group': i18n.get('Notifications'),
             'name': 'notificationDescription',
             'type': 'description',

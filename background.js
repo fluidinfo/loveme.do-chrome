@@ -13,7 +13,6 @@ var userAboutRegex = /^@([\w\.]+)$/;
 // -----------------  Settings -----------------
 
 var settings = new Store('settings', {
-    'lowercase': 'lower',
     'notificationTimeout': 30
 });
 
@@ -136,39 +135,19 @@ var addContextMenuItem = function(text, type, context){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
 
-    // Get the lowercase value from settings each time we're called, as it could
-    // be changed by the user at any moment.
-    var lowercase = settings.get('lowercase');
-    var items = [];
-    if (type === 'url'){
-        // Don't convert URLs to lowercase.
-        items.push(text);
-    }
-    else {
-        // Either a selection or link text.
-        if (lowercase === 'original' || lowercase === 'both'){
-            items.push(text);
-        }
-        if (lowercase === 'lower' || lowercase === 'both'){
-            items.push(text.toLowerCase());
-        }
-    }
-    for (var i = 0; i < items.length; i++){
-        var item = items[i];
-        if (typeof contextMenuItems[item] === 'undefined'){
-            var menuItem = chrome.contextMenus.create({
-                'title' : 'Fluidinfo "' + item + '"',
-                'type' : 'normal',
-                'contexts' : [context],
-                'onclick' : function(info, tab){
-                    openNewTab(item, info, tab);
-                }
-            });
-            contextMenuItems[item] = {
-                context: context,
-                menuItem: menuItem
-            };
-        }
+    if (typeof contextMenuItems[text] === 'undefined'){
+        var menuItem = chrome.contextMenus.create({
+            'title' : 'Fluidinfo "' + text + '"',
+            'type' : 'normal',
+            'contexts' : [context],
+            'onclick' : function(info, tab){
+                openNewTab(text, info, tab);
+            }
+        });
+        contextMenuItems[text] = {
+            context: context,
+            menuItem: menuItem
+        };
     }
 };
 
@@ -182,32 +161,16 @@ var removeContextMenuItemsByContext = function(context){
     }
 };
 
-var createSelectionNotification = function(about, selectionType){
+var createSelectionNotifications = function(about){
     displayNotifications({
         about: about,
-        tabId: 'selection-' + selectionType,
+        tabId: 'selection',
         updateBadge: false
     });
 };
 
-var createSelectionNotifications = function(text){
-    var lowercase = settings.get('lowercase');
-    var didOriginal = false;
-    if (lowercase === 'original' || lowercase === 'both'){
-        didOriginal = true;
-        createSelectionNotification(text, 'original');
-    }
-    if (lowercase === 'lower' || lowercase === 'both'){
-        var lower = text.toLowerCase();
-        if (didOriginal === false || lower !== text){
-            createSelectionNotification(lower, 'lower');
-        }
-    }
-};
-
 var removeSelectionNotifications = function(){
-    deleteAllNotificationsForTab('selection-original');
-    deleteAllNotificationsForTab('selection-lower');
+    deleteAllNotificationsForTab('selection');
     tabThatCreatedCurrentSelection = null;
 };
 
@@ -269,7 +232,12 @@ chrome.extension.onConnect.addListener(function(port){
                                 // Look for "fullname @username" text.
                                 var spaceAt = msg.text.indexOf(' @');
                                 if (spaceAt !== -1){
-                                    var fullname = msg.text.slice(0, spaceAt);
+                                    // Note that Twitter now put U-200F (RIGHT-TO-LEFT MARK) after
+                                    // people's names, and we need to zap it. You'll know if this
+                                    // creeps back in, as clicking on the link in the context menu
+                                    // will take you to something ending in %E2%80%8F (the UTF-8
+                                    // for that codepoint).
+                                    var fullname = msg.text.slice(0, spaceAt).replace(/^\s+|[\s\u200F]+$/g, '');
                                     addContextMenuItem(fullname, 'link-text', 'link');
                                 }
                             }
@@ -381,8 +349,9 @@ chrome.extension.onRequest.addListener(
                     values[username + '/' + tagName] = tagValue;
                 }
             }
+            var about = valueUtils.lowercaseAboutValue(request.about);
             fluidinfoAPI.update({
-                where: 'fluiddb/about = "' + request.about + '"',
+                where: 'fluiddb/about = "' + valueUtils.quoteAbout(about) + '"',
                 values: values,
                 onSuccess: function(response){
                     sendResponse({
@@ -823,7 +792,7 @@ var displayNotifications = function(options){
 
     // Pull back tag paths on the object for the current about value.
     fluidinfoAPI.api.get({
-        path: ['about', about],
+        path: ['about', valueUtils.lowercaseAboutValue(about)],
         onError: onError,
         onSuccess: onSuccess
     });
