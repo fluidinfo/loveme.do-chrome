@@ -7,6 +7,7 @@ The Fluidinfo extension helps you work with information while browsing the web. 
 * Add info to anything
 * See info you and your friends have added to URLs
 * Jump to http://fluidinfo.com to look at anything
+* Follow anything
 
 These are described below.
 
@@ -40,6 +41,11 @@ There are many ways to quickly jump to fluidinfo.com to look at anything:
 * Hover over any image and right-click to jump to the URL of the image.
 * Select any text on a web page, and right-click to jump to it.
 * In the Chrome location bar, type "fi" and a Space. Then type anything you like, and hit Enter to jump to the Fluidinfo page for that thing.
+
+FOLLOW
+------
+
+In the context menu for the page, over a link or image, or with text selected, you can choose to follow that thing in Fluidinfo. You can follow anything at all: names, @names, URLs, images, words or phrases, anything!
 
 FEEDBACK
 --------
