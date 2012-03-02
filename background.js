@@ -16,6 +16,23 @@ var settings = new Store('settings', {
     'notificationTimeout': 30
 });
 
+// ------------------ API ----------------------
+var fluidinfoAPI;
+
+var setFluidinfoAPIFromSettings = function(){
+    // Set the global fluidinfoAPI variable using credentials found in
+    // the settings, if possible. If credentials cannot be found, do
+    // nothing (callers can check fluidinfoAPI).
+    var username = settings.get('username').toLowerCase();
+    var password = settings.get('password');
+    if (username && password){
+        fluidinfoAPI = fluidinfo({
+            username: username,
+            password: password
+        });
+    }
+};
+
 // -----------------  Omnibox -----------------
 
 chrome.omnibox.setDefaultSuggestion({
@@ -85,11 +102,20 @@ function refererFragment(info){
 // --------------------------- Page --------------------------
 
 chrome.contextMenus.create({
-    'title' : 'Fluidinfo for this page',
+    'title' : 'Go to this page',
     'type' : 'normal',
     'contexts' : ['page'],
     'onclick' : function(info, tab){
         openNewTab(info.pageUrl, info, tab);
+    }
+});
+
+chrome.contextMenus.create({
+    'title' : 'Follow this page',
+    'type' : 'normal',
+    'contexts' : ['page'],
+    'onclick' : function(info, tab){
+        addFollow(info.pageUrl);
     }
 });
 
@@ -136,17 +162,26 @@ var addContextMenuItem = function(text, type, context){
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
 
     if (typeof contextMenuItems[text] === 'undefined'){
-        var menuItem = chrome.contextMenus.create({
-            'title' : 'Fluidinfo "' + text + '"',
+        var gotoMenuItem = chrome.contextMenus.create({
+            'title' : 'Go to ' + text,
             'type' : 'normal',
             'contexts' : [context],
             'onclick' : function(info, tab){
                 openNewTab(text, info, tab);
             }
         });
+        var followMenuItem = chrome.contextMenus.create({
+            'title' : 'Follow ' + text,
+            'type' : 'normal',
+            'contexts' : [context],
+            'onclick' : function(info, tab){
+                addFollow(text);
+            }
+        });
         contextMenuItems[text] = {
             context: context,
-            menuItem: menuItem
+            followMenuItem: followMenuItem,
+            gotoMenuItem: gotoMenuItem
         };
     }
 };
@@ -155,7 +190,8 @@ var removeContextMenuItemsByContext = function(context){
     for (text in contextMenuItems){
         if (typeof contextMenuItems[text] !== 'undefined' &&
             contextMenuItems[text].context === context){
-            chrome.contextMenus.remove(contextMenuItems[text].menuItem);
+            chrome.contextMenus.remove(contextMenuItems[text].gotoMenuItem);
+            chrome.contextMenus.remove(contextMenuItems[text].followMenuItem);
             delete contextMenuItems[text];
         }
     }
@@ -260,7 +296,7 @@ chrome.extension.onConnect.addListener(function(port){
 // --------------------------- Image --------------------------
 
 chrome.contextMenus.create({
-    'title' : 'Fluidinfo for the URL of this image',
+    'title' : 'Go to this image',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : function(info, tab){
@@ -268,34 +304,74 @@ chrome.contextMenus.create({
     }
 });
 
-// --------------------------- Frame --------------------------
-
 chrome.contextMenus.create({
-    'title' : 'Fluidinfo for this frame',
+    'title' : 'Follow this image',
     'type' : 'normal',
-    'contexts' : ['frame'],
+    'contexts' : ['image'],
     'onclick' : function(info, tab){
-        openNewTab(info.frameUrl, info, tab);
+        addFollow(info.srcUrl);
     }
 });
 
-// ------------------- Tagging (from the popup) ----------------
+// ------------------- Add tag ---------------------------------
 
-var fluidinfoAPI;
+var addTag = function(options){
+    /*
+     * Add tags to a Fluidinfo object.
+     *
+     * Options contains:
+     *   about: the object the tag should be attached to.
+     *   onError: function to call on any error, passing an error message.
+     *   onSuccess: function to call on success, passing the Fluidinfo response.
+     *   tagNamesAndValues: object mapping tag names to values.
+     */
 
-var setFluidinfoAPIFromSettings = function(){
-    // Set the global fluidinfoAPI variable using credentials found in
-    // the settings, if possible. If credentials cannot be found, do
-    // nothing (callers can check fluidinfoAPI).
-    var username = settings.get('username').toLowerCase();
-    var password = settings.get('password');
-    if (username && password){
-        fluidinfoAPI = fluidinfo({
-            username: username,
-            password: password
-        });
+    setFluidinfoAPIFromSettings();
+    if (fluidinfoAPI === undefined){
+        options.onError('Username and password are not set. Please log in (right-click the Fluidinfo icon).');
+        return;
     }
+    var username = settings.get('username').toLowerCase();
+    var values = {};
+    var tagName;
+    for (tagName in options.tagNamesAndValues){
+        var tagValue = options.tagNamesAndValues[tagName];
+        if (typeof tagValue !== 'function'){
+            values[username + '/' + tagName] = tagValue;
+        }
+    }
+    var about = valueUtils.lowercaseAboutValue(options.about);
+    fluidinfoAPI.update({
+        where: 'fluiddb/about = "' + valueUtils.quoteAbout(about) + '"',
+        values: values,
+        onSuccess: function(response){
+            options.onSuccess && options.onSuccess(response);
+        },
+        onError: function(response){
+            console.log('Fluidinfo API call failed:');
+            console.log(response);
+            options.onError && options.onError(
+                'Fluidinfo call failed: ' + response.statusText + ' ' +
+                '(status ' + response.status + ').');
+        }
+    });
 };
+
+var addFollow = function(toFollow){
+    /*
+     * Add a follows tag to the Fluidinfo with about = toFollow.
+     */
+    // No onError or onSuccess are added here as we're being called
+    // from a context menu.
+    addTag({
+        about: toFollow,
+        tagNamesAndValues: {
+            follows: null
+        }
+    });
+};
+
+// ------------------- Tagging (from the popup) ----------------
 
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
@@ -330,42 +406,20 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'tag'){
-            // Adds a tag to an arbitrary object (used by the popup to put the current
-            // URL onto an object as a tag value).
-            setFluidinfoAPIFromSettings();
-            if (fluidinfoAPI === undefined){
-                sendResponse({
-                    message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
-                    success: false
-                });
-                return;
-            }
-            var username = settings.get('username').toLowerCase();
-            var values = {};
-            var tagName;
-            for (tagName in request.tagNamesAndValues){
-                var tagValue = request.tagNamesAndValues[tagName];
-                if (typeof tagValue !== 'function'){
-                    values[username + '/' + tagName] = tagValue;
-                }
-            }
-            var about = valueUtils.lowercaseAboutValue(request.about);
-            fluidinfoAPI.update({
-                where: 'fluiddb/about = "' + valueUtils.quoteAbout(about) + '"',
-                values: values,
+            addTag({
+                about: request.about,
+                onError: function(response){
+                    sendResponse({
+                        message: response,
+                        success: false
+                    });
+                },
                 onSuccess: function(response){
                     sendResponse({
                         success: true
                     });
                 },
-                onError: function(response){
-                    console.log('Fluidinfo API call failed:');
-                    console.log(response);
-                    sendResponse({
-                        message: 'Fluidinfo call failed: ' + response.statusText + ' (status ' + response.status + ').',
-                        success: false
-                    });
-                }
+                tagNamesAndValues: request.tagNamesAndValues
             });
         }
         else if (request.action === 'tag-current-url'){
