@@ -6,9 +6,9 @@ var currentSelection = null;
 var tabThatCreatedCurrentSelection = null;
 
 // Things we consider as possibly being an about value that's a
-// corresponds to a fluidinfo user that's being followed, e.g.,
-// '@username' or '@wordnik.com'.
-var userAboutRegex = /^@([\w\.]+)$/;
+// corresponds to something that's being followed, e.g.,
+// '@username' or 'wordnik.com'.
+var followeeRegex = /^@?([\w\.]+)$/;
 
 // -----------------  Settings -----------------
 
@@ -747,7 +747,7 @@ var displayNotifications = function(options){
             var userIsFollowingSomething = false;
             var data = following.data;
             for (i = 0; i < data.length; i++){
-                var match = userAboutRegex.exec(data[i]['fluiddb/about']);
+                var match = followeeRegex.exec(data[i]['fluiddb/about']);
                 if (match !== null){
                     var what = match[1].toLowerCase();
                     if (what !== username){
