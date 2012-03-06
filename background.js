@@ -2,8 +2,10 @@ var base = 'http://fluidinfo.com/about/';
 var defaultAbout = '@fluidinfo';
 var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
+
 var currentSelection = null;
 var tabThatCreatedCurrentSelection = null;
+var maxSelectionLengthToLookup = 200;
 
 // Things we consider as possibly being an about value that's a
 // corresponds to something that's being followed, e.g.,
@@ -222,7 +224,9 @@ chrome.extension.onConnect.addListener(function(port){
                     currentSelection = msg.selection;
                     removeContextMenuItemsByContext('selection');
                     addContextMenuItem(currentSelection, 'selection', 'selection');
-                    createSelectionNotifications(currentSelection);
+                    if (currentSelection.length < maxSelectionLengthToLookup){
+                        createSelectionNotifications(currentSelection);
+                    }
                     chrome.tabs.getSelected(null, function(tab){
                         tabThatCreatedCurrentSelection = tab.id;
                     });
