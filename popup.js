@@ -506,9 +506,9 @@ function fi_init(){
         // Get the settings from the background app & decide what to
         // do, depending on whether the user is logged in or not.
         chrome.extension.sendRequest({
-            action: 'get-settings'
-        }, function(settings){
-            if (settings.username){
+            action: 'get-fluidinfoUsername'
+        }, function(fluidinfoUsername){
+            if (fluidinfoUsername){
                 document.getElementById('_fi_not_logged_in').style.display = 'none';
                 document.getElementById('_fi_tag').style.display = '';
 
@@ -521,10 +521,11 @@ function fi_init(){
                     tabId: tab.id
                 }, function(response){
                     if (response.success){
+                        var fluidinfoUsername = response.fluidinfoUsername;
                         existingValues = {};
                         for (var i = 0; i < tags.length; i++){
                             var tag = tags[i];
-                            var value = response.result.data[response.username + '/' + tag];
+                            var value = response.result.data[fluidinfoUsername + '/' + tag];
                             if (value !== undefined){
                                 existingValues[tag] = value;
                                 if (tag === 'comment' || tag === 'rating'){
