@@ -12,7 +12,7 @@ var maxSelectionLengthToLookup = 200;
 // '@username' or 'wordnik.com'.
 var followeeRegex = /^@?([\w\.]+)$/;
 
-// -----------------  Settings -----------------
+// -----------------  Settings, creds, Fluidinfo API -----------------
 
 var settings = new Store('settings', {
     'notificationTimeout': 30
@@ -20,6 +20,36 @@ var settings = new Store('settings', {
 
 var fluidinfoAPI = null;
 var fluidinfoUsername = null;
+
+var validateCredentials = function(options){
+    var username = settings.get('username').toLowerCase();
+    var password = settings.get('password');
+
+    if (!(username && password)){
+        fluidinfoAPI = fluidinfoUsername = null;
+        options.onError && options.onError('Username and password are not both set.');
+    }
+    else {
+        fluidinfoAPI = fluidinfo({
+            username: username,
+            password: password
+        });
+        fluidinfoAPI.api.get({
+            path: ['users', username],
+            onSuccess: function(response){
+                fluidinfoUsername = username;
+                options.onSuccess && options.onSuccess(response);
+            },
+            onError: function(response){
+                fluidinfoAPI = fluidinfoUsername = null;
+                options.onError && options.onError(response);
+            }
+        });
+    }
+};
+
+// Perform an immediate check for credentials from any persisted settings.
+validateCredentials({});
 
 // -----------------  Omnibox -----------------
 
@@ -367,34 +397,24 @@ chrome.extension.onRequest.addListener(
         else if (request.action === 'logout'){
             fluidinfoAPI = fluidinfoUsername = null;
         }
-        else if (request.action === 'validate'){
-            var username = settings.get('username').toLowerCase();
-            var password = settings.get('password');
-            if (!(username && password)){
-                fluidinfoAPI = fluidinfoUsername = null;
-                sendResponse({
-                    message: 'Error: username and password are not both set.',
-                    success: false
-                });
-                return;
-            }
-            fluidinfoAPI = fluidinfo({
-                username: username,
-                password: password
-            });
-            fluidinfoAPI.api.get({
-                path: ['users', username],
-                onSuccess: function(response){
-                    fluidinfoUsername = username;
+        else if (request.action === 'validate-credentials'){
+            validateCredentials({
+                onError: function(response){
+                    if (response.hasOwnProperty('status')){
+                        var message = ('Authentication failed: ' + response.statusText +
+                                       ' (status ' + response.status + ').');
+                    }
+                    else {
+                        var message = response;
+                    }
                     sendResponse({
-                        success: true
+                        message: message,
+                        success: false
                     });
                 },
-                onError: function(response){
-                    fluidinfoAPI = fluidinfoUsername = null;
+                onSuccess: function(response){
                     sendResponse({
-                        message: 'Authentication failed: ' + response.statusText + ' (status ' + response.status + ').',
-                        success: false
+                        success: true
                     });
                 }
             });
@@ -492,10 +512,12 @@ chrome.extension.onRequest.addListener(
             // know are on the object. This avoids asking Fluidinfo for things we
             // already know don't exist.
             var tags = [];
-            for (var i = 0; i < request.tags.length; i++){
-                var tag = fluidinfoUsername + '/' + request.tags[i];
-                if (valuesCache[request.tabId].tagPaths.hasOwnProperty(tag)){
-                    tags.push(tag);
+            if (valuesCache.hasOwnProperty(request.tabId)){
+                for (var i = 0; i < request.tags.length; i++){
+                    var tag = fluidinfoUsername + '/' + request.tags[i];
+                    if (valuesCache[request.tabId].tagPaths.hasOwnProperty(tag)){
+                        tags.push(tag);
+                    }
                 }
             }
 

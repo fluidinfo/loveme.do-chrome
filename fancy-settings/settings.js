@@ -29,7 +29,7 @@ window.addEvent('domready', function (){
             else {
                 chrome.extension.sendRequest(
                     {
-                        action: 'validate'
+                        action: 'validate-credentials'
                     },
                     function(response){
                         if (response.success){
