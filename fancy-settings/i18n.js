@@ -40,7 +40,7 @@ this.i18n = {
         'en': 'Valid:'
     },
     'valid description': {
-        'en': '<img id="credentials-valid-img" src="../booleanFalse.png"/> <span id="credentials-valid-text">x</span>'
+        'en': '<img id="credentials-valid-img" src="../booleanFalse.png"/> <span id="credentials-valid-text">This red cross will be replace by a green tick  when your credentials are correct.</span>'
     },
     'description': {
         'en':
