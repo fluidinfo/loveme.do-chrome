@@ -3,7 +3,7 @@ var port = chrome.extension.connect({name: 'content-script'});
 var postMessage = function(msg, attempt){
     attempt = attempt || 1;
     if (attempt > 10){
-        console.log('Could not send messageg after 10 attempts. Giving up.');
+        console.log('Could not send message after 10 attempts. Giving up.');
         console.log(msg);
         return;
     }
