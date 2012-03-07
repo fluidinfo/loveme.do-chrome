@@ -227,11 +227,12 @@ var removeSelectionNotifications = function(){
 };
 
 
-// Listen for incoming messages with events (link mouseover, link
-// mouseout, selection set/cleared), and update the context menu.
+// Listen for incoming messages from the content script with events
+// (link mouseover, link mouseout, selection set/cleared), and
+// update the context menu.
 
 chrome.extension.onConnect.addListener(function(port){
-    if (port.name === 'context'){
+    if (port.name === 'content-script'){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
                 if (currentSelection === null || msg.selection !== currentSelection){

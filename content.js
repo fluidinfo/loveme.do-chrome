@@ -1,4 +1,27 @@
-var port = chrome.extension.connect({name: 'context'});
+var port = chrome.extension.connect({name: 'content-script'});
+
+var postMessage = function(msg, attempt){
+    attempt = attempt || 1;
+    if (attempt > 10){
+        console.log('Could not send messageg after 10 attempts. Giving up.');
+        console.log(msg);
+        return;
+    }
+    try {
+        port.postMessage(msg);
+    }
+    catch(error){
+        var retry = function(){
+            // Note that the extension may have been disabled. In which case
+            // chrome.extension.connect logs a console error. Putting
+            // a try/catch around it doesn't help.
+            port = chrome.extension.connect({name: 'content-script'});
+            postMessage(msg, attempt + 1);
+        };
+
+        setTimeout(retry, 100);
+    }
+};
 
 var createOverListener = function(node){
     // Return a function that will send the innerText of a node to our
@@ -7,7 +30,7 @@ var createOverListener = function(node){
     return function(){
         // Send the link text, trimmed of leading/trailing whitespace and
         // also the URL of the page.
-        port.postMessage({
+        postMessage({
             docURL: document.location.toString().toLowerCase(),
             linkURL: node.getAttribute('href'),
             mouseover: true,
@@ -22,7 +45,7 @@ var createOutListener = function(node){
     // background page. We'll use the functions returned as mouseout
     // functions on links in (and added to) the document.
     return function(){
-        port.postMessage({
+        postMessage({
             mouseout: true
         });
         return true;
@@ -54,11 +77,11 @@ body.addEventListener ('DOMNodeInserted', function(event){
 var checkSelection = function(event){
     var selection = window.getSelection().toString();
     if (selection){
-        port.postMessage({
+        postMessage({
             selection: selection.replace(/^\s+|\s+$/g, '')
         });
     } else {
-        port.postMessage({
+        postMessage({
             selectionCleared: true
         });
     }
