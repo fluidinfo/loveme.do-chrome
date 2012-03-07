@@ -18,22 +18,8 @@ var settings = new Store('settings', {
     'notificationTimeout': 30
 });
 
-// ------------------ API ----------------------
-var fluidinfoAPI;
-
-var setFluidinfoAPIFromSettings = function(){
-    // Set the global fluidinfoAPI variable using credentials found in
-    // the settings, if possible. If credentials cannot be found, do
-    // nothing (callers can check fluidinfoAPI).
-    var username = settings.get('username').toLowerCase();
-    var password = settings.get('password');
-    if (username && password){
-        fluidinfoAPI = fluidinfo({
-            username: username,
-            password: password
-        });
-    }
-};
+var fluidinfoAPI = null;
+var fluidinfoUsername = null;
 
 // -----------------  Omnibox -----------------
 
@@ -50,18 +36,16 @@ chrome.omnibox.onInputEntered.addListener(function(text){
 });
 
 chrome.omnibox.onInputChanged.addListener(function(text, suggest){
-    var username = settings.get('username').toLowerCase();
-
-    if (username &&
-            ((text === username.slice(0, text.length)) ||
-             (text.charAt(0) === '@' && text.slice(1) === username.slice(0, text.length - 1)))){
+    if (fluidinfoUsername &&
+            ((text === fluidinfoUsername.slice(0, text.length)) ||
+             (text.charAt(0) === '@' && text.slice(1) === fluidinfoUsername.slice(0, text.length - 1)))){
         // The user may be typing their username or @username, so suggest it.
         var prefix = text.slice(text.charAt(0) === '@' ? 1 : 0);
         suggest([
             {
-                content: '@' + username,
+                content: '@' + fluidinfoUsername,
                 description: ('Jump to <match>@' + prefix + '</match>' +
-                              username.slice(prefix.length) + ' in Fluidinfo')
+                              fluidinfoUsername.slice(prefix.length) + ' in Fluidinfo')
             }
         ]);
     }
@@ -330,18 +314,16 @@ var addTag = function(options){
      *   tagNamesAndValues: object mapping tag names to values.
      */
 
-    setFluidinfoAPIFromSettings();
-    if (fluidinfoAPI === undefined){
+    if (!fluidinfoAPI){
         options.onError('Username and password are not set. Please log in (right-click the Fluidinfo icon).');
         return;
     }
-    var username = settings.get('username').toLowerCase();
     var values = {};
     var tagName;
     for (tagName in options.tagNamesAndValues){
         var tagValue = options.tagNamesAndValues[tagName];
         if (typeof tagValue !== 'function'){
-            values[username + '/' + tagName] = tagValue;
+            values[fluidinfoUsername + '/' + tagName] = tagValue;
         }
     }
     var about = valueUtils.lowercaseAboutValue(options.about);
@@ -379,29 +361,37 @@ var addFollow = function(toFollow){
 
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
-        if (request.action === 'get-settings'){
-            sendResponse(settings.toObject());
+        if (request.action === 'get-fluidinfoUsername'){
+            sendResponse(fluidinfoUsername);
+        }
+        else if (request.action === 'logout'){
+            fluidinfoAPI = fluidinfoUsername = null;
         }
         else if (request.action === 'validate'){
             var username = settings.get('username').toLowerCase();
             var password = settings.get('password');
             if (!(username && password)){
+                fluidinfoAPI = fluidinfoUsername = null;
                 sendResponse({
                     message: 'Error: username and password are not both set.',
                     success: false
                 });
                 return;
             }
-            setFluidinfoAPIFromSettings();
+            fluidinfoAPI = fluidinfo({
+                username: username,
+                password: password
+            });
             fluidinfoAPI.api.get({
                 path: ['users', username],
                 onSuccess: function(response){
+                    fluidinfoUsername = username;
                     sendResponse({
                         success: true
                     });
                 },
                 onError: function(response){
-                    fluidinfoAPI = undefined;
+                    fluidinfoAPI = fluidinfoUsername = null;
                     sendResponse({
                         message: 'Authentication failed: ' + response.statusText + ' (status ' + response.status + ').',
                         success: false
@@ -427,21 +417,19 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'tag-current-url'){
-            setFluidinfoAPIFromSettings();
-            if (fluidinfoAPI === undefined){
+            if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
                     success: false
                 });
                 return;
             }
-            var username = settings.get('username').toLowerCase();
             var tagNamesAndValues = {};
             var tagName;
             for (tagName in request.tagNamesAndValues){
                 var tagValue = request.tagNamesAndValues[tagName];
                 if (typeof tagValue !== 'function'){
-                    tagNamesAndValues[username + '/' + tagName] = tagValue;
+                    tagNamesAndValues[fluidinfoUsername + '/' + tagName] = tagValue;
                 }
             }
             valuesCache[request.tabId].valuesCache.set({
@@ -462,19 +450,17 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'untag-current-url'){
-            setFluidinfoAPIFromSettings();
-            if (fluidinfoAPI === undefined){
+            if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
                     success: false
                 });
                 return;
             }
-            var username = settings.get('username').toLowerCase();
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
                 var tag = request.tags[i];
-                tags.push(username + '/' + tag);
+                tags.push(fluidinfoUsername + '/' + tag);
             }
             valuesCache[request.tabId].valuesCache.remove({
                 onError: function(response){
@@ -494,8 +480,7 @@ chrome.extension.onRequest.addListener(
             });
         }
         else if (request.action === 'get-values-for-current-url'){
-            setFluidinfoAPIFromSettings();
-            if (fluidinfoAPI === undefined){
+            if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
                     success: false
@@ -506,10 +491,9 @@ chrome.extension.onRequest.addListener(
             // Figure out what tags to retrieve, based on the list of tags we already
             // know are on the object. This avoids asking Fluidinfo for things we
             // already know don't exist.
-            var username = settings.get('username').toLowerCase();
             var tags = [];
             for (var i = 0; i < request.tags.length; i++){
-                var tag = username + '/' + request.tags[i];
+                var tag = fluidinfoUsername + '/' + request.tags[i];
                 if (valuesCache[request.tabId].tagPaths.hasOwnProperty(tag)){
                     tags.push(tag);
                 }
@@ -518,9 +502,9 @@ chrome.extension.onRequest.addListener(
             if (tags.length === 0){
                 // None of the wanted tags are on the object.
                 sendResponse({
+                    fluidinfoUsername: fluidinfoUsername,
                     result: { data: {} },
-                    success: true,
-                    username: username
+                    success: true
                 });
             }
             else {
@@ -533,9 +517,9 @@ chrome.extension.onRequest.addListener(
                     },
                     onSuccess: function(result){
                         sendResponse({
+                            fluidinfoUsername: fluidinfoUsername,
                             result: result,
-                            success: true,
-                            username: username
+                            success: true
                         });
                     },
                     tags: tags
@@ -609,11 +593,8 @@ var deleteNotificationForTab = function(tabId, type){
 
 var displayNotifications = function(options){
     // If the user isn't logged in, do nothing.
-    if (fluidinfoAPI === undefined){
-        setFluidinfoAPIFromSettings();
-        if (fluidinfoAPI === undefined){
-            return;
-        }
+    if (!fluidinfoAPI){
+        return;
     }
     var tabId = options.tabId;
     var about = options.about;
@@ -635,14 +616,13 @@ var displayNotifications = function(options){
     };
 
     var showUsersTags = function(result){
-        var username = settings.get('username').toLowerCase();
         var tagPaths = result.data.tagPaths;
         var wantedTags = [];
         for (var i = 0; i < tagPaths.length; i++){
             var tagPath = tagPaths[i];
             valuesCache[tabId].tagPaths[tagPath] = true;
             var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-            if (namespace === username){
+            if (namespace === fluidinfoUsername){
                 // This is one of the user's tags.
                 wantedTags.push(tagPath);
             }
@@ -728,16 +708,14 @@ var displayNotifications = function(options){
     };
 
     var showFolloweeTags = function(result){
-        var username = settings.get('username').toLowerCase();
-
         var onError = function(result){
             if (result.status === 404 &&
                 result.headers['X-FluidDB-Error-Class'] === 'TNonexistentTag' &&
-                result.headers['X-FluidDB-Path'] === username + '/follows'){
-                    // The user doesn't have a username/follows tag. No problem.
+                result.headers['X-FluidDB-Path'] === fluidinfoUsername + '/follows'){
+                    // The user doesn't have a USERNAME/follows tag. No problem.
             }
             else {
-                console.log('Got error from Fluidinfo fetching follows tag for ' + username);
+                console.log('Got error from Fluidinfo fetching ' + fluidinfoUsername + '/follows tag.');
                 console.log(result);
             }
         };
@@ -754,7 +732,7 @@ var displayNotifications = function(options){
                 var match = followeeRegex.exec(data[i]['fluiddb/about']);
                 if (match !== null){
                     var what = match[1].toLowerCase();
-                    if (what !== username){
+                    if (what !== fluidinfoUsername){
                         followees[what] = true;
                         userIsFollowingSomething = true;
                     }
@@ -837,7 +815,7 @@ var displayNotifications = function(options){
         // Get the about values from the objects the user follows.
         fluidinfoAPI.query({
             select: ['fluiddb/about'],
-            where: ['has ' + username + '/follows' ],
+            where: ['has ' + fluidinfoUsername + '/follows' ],
             onError: onError,
             onSuccess: onSuccess
         });

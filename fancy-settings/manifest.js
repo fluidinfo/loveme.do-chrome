@@ -3,41 +3,6 @@ this.manifest = {
     'icon': '../fi_32.png',
     'settings': [
         {
-            'tab': i18n.get('help'),
-            'group': i18n.get('about'),
-            'name': 'about',
-            'type': 'description',
-            'text': i18n.get('description')
-        },
-        {
-            'tab': i18n.get('help'),
-            'group': i18n.get('Add info'),
-            'name': 'adding',
-            'type': 'description',
-            'text': i18n.get('add description')
-        },
-        {
-            'tab': i18n.get('help'),
-            'group': i18n.get('See info'),
-            'name': 'see',
-            'type': 'description',
-            'text': i18n.get('see description')
-        },
-        {
-            'tab': i18n.get('help'),
-            'group': i18n.get('Jump'),
-            'name': 'jump',
-            'type': 'description',
-            'text': i18n.get('jump description')
-        },
-        {
-            'tab': i18n.get('help'),
-            'group': i18n.get('Feedback'),
-            'name': 'feedback',
-            'type': 'description',
-            'text': i18n.get('feedback description')
-        },
-        {
             'tab': i18n.get('login'),
             'group': i18n.get('password'),
             'name': 'passwordDescription',
@@ -86,6 +51,41 @@ this.manifest = {
             'name': 'logout',
             'type': 'button',
             'text': i18n.get('Logout')
+        },
+        {
+            'tab': i18n.get('help'),
+            'group': i18n.get('about'),
+            'name': 'about',
+            'type': 'description',
+            'text': i18n.get('description')
+        },
+        {
+            'tab': i18n.get('help'),
+            'group': i18n.get('Add info'),
+            'name': 'adding',
+            'type': 'description',
+            'text': i18n.get('add description')
+        },
+        {
+            'tab': i18n.get('help'),
+            'group': i18n.get('See info'),
+            'name': 'see',
+            'type': 'description',
+            'text': i18n.get('see description')
+        },
+        {
+            'tab': i18n.get('help'),
+            'group': i18n.get('Jump'),
+            'name': 'jump',
+            'type': 'description',
+            'text': i18n.get('jump description')
+        },
+        {
+            'tab': i18n.get('help'),
+            'group': i18n.get('Feedback'),
+            'name': 'feedback',
+            'type': 'description',
+            'text': i18n.get('feedback description')
         },
         {
             'tab': i18n.get('options'),

@@ -3,6 +3,10 @@ body {
     margin: 2px;
 }
 
+a {
+    outline: none !important;
+}
+
 .logo {
     float: left;
     margin: 0px 5px 5px 0px;
