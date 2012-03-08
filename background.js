@@ -227,11 +227,12 @@ var removeSelectionNotifications = function(){
 };
 
 
-// Listen for incoming messages with events (link mouseover, link
-// mouseout, selection set/cleared), and update the context menu.
+// Listen for incoming messages from the content script with events
+// (link mouseover, link mouseout, selection set/cleared), and
+// update the context menu.
 
 chrome.extension.onConnect.addListener(function(port){
-    if (port.name === 'context'){
+    if (port.name === 'content-script'){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
                 if (currentSelection === null || msg.selection !== currentSelection){
@@ -871,5 +872,21 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             tabId: tabId,
             updateBadge: true
         });
+    }
+});
+
+
+// Inject our content script into existing tabs, skipping chrome's own
+// tabs (trying to inject into them gives a console error message).
+
+chrome.tabs.query({}, function(tabs){
+    for (var i = 0; i < tabs.length; i++){
+        var tab = tabs[i];
+        if (tab.url.slice(0, 9) !== 'chrome://' &&
+            tab.url.slice(0, 18) !== 'chrome-devtools://'){
+            chrome.tabs.executeScript(tab.id, {
+                file: 'content.js'
+            });
+        }
     }
 });

@@ -1,4 +1,22 @@
-var port = chrome.extension.connect({name: 'context'});
+var port = chrome.extension.connect({name: 'content-script'});
+
+var postMessage = function(msg){
+    if (port !== null){
+        try {
+            port.postMessage(msg);
+        }
+        catch(error){
+            // The extension has probably been disabled or uninstalled.
+            // Deactivate ourself. If the extension is reinstalled or
+            // reloaded, it will inject another copy of this script
+            // into this same page.
+            port = null;
+            // Stop doing useless selection detection work, to reduce
+            // the load the extension puts on the poor browser.
+            checkSelection = function(){};
+        }
+    }
+};
 
 var createOverListener = function(node){
     // Return a function that will send the innerText of a node to our
@@ -7,7 +25,7 @@ var createOverListener = function(node){
     return function(){
         // Send the link text, trimmed of leading/trailing whitespace and
         // also the URL of the page.
-        port.postMessage({
+        postMessage({
             docURL: document.location.toString().toLowerCase(),
             linkURL: node.getAttribute('href'),
             mouseover: true,
@@ -22,7 +40,7 @@ var createOutListener = function(node){
     // background page. We'll use the functions returned as mouseout
     // functions on links in (and added to) the document.
     return function(){
-        port.postMessage({
+        postMessage({
             mouseout: true
         });
         return true;
@@ -37,11 +55,11 @@ var addListeners = function(nodes){
     }
 };
 
-// Add a mouse event listeners for all <a> tags in the document once it has
+// Add a mouse event listener for all <a> tags in the document once it has
 // been loaded.
 addListeners(document.getElementsByTagName('a'));
 
-// Arrange to add a mouse event listeners to all <a> tags that get added to
+// Arrange to add a mouse event listener to all <a> tags that get added to
 // the document.
 
 var body = document.getElementsByTagName('body')[0];
@@ -54,11 +72,11 @@ body.addEventListener ('DOMNodeInserted', function(event){
 var checkSelection = function(event){
     var selection = window.getSelection().toString();
     if (selection){
-        port.postMessage({
+        postMessage({
             selection: selection.replace(/^\s+|\s+$/g, '')
         });
     } else {
-        port.postMessage({
+        postMessage({
             selectionCleared: true
         });
     }
