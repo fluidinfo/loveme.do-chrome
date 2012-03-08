@@ -1,16 +1,20 @@
 var port = chrome.extension.connect({name: 'content-script'});
 
 var postMessage = function(msg){
-    try {
-        port.postMessage(msg);
-    }
-    catch(error){
-        // Note that the extension may have been disabled. In that case,
-        // chrome.extension.connect logs a console error when we try
-        // to reconnect and this code fails. Putting a try/catch around
-        // it didn't help. It's ok to fail if we really don't have a port.
-        port = chrome.extension.connect({name: 'content-script'});
-        port.postMessage(msg);
+    if (port !== null){
+        try {
+            port.postMessage(msg);
+        }
+        catch(error){
+            // The extension has probably been disabled or uninstalled.
+            // Deactivate ourself. If the extension is reinstalled or
+            // reloaded, it will inject another copy of this script
+            // into this same page.
+            port = null;
+            // Stop doing useless selection detection work, to reduce
+            // the load the extension puts on the poor browser.
+            checkSelection = function(){};
+        }
     }
 };
 
@@ -51,11 +55,11 @@ var addListeners = function(nodes){
     }
 };
 
-// Add a mouse event listeners for all <a> tags in the document once it has
+// Add a mouse event listener for all <a> tags in the document once it has
 // been loaded.
 addListeners(document.getElementsByTagName('a'));
 
-// Arrange to add a mouse event listeners to all <a> tags that get added to
+// Arrange to add a mouse event listener to all <a> tags that get added to
 // the document.
 
 var body = document.getElementsByTagName('body')[0];
