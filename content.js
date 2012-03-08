@@ -1,25 +1,16 @@
 var port = chrome.extension.connect({name: 'content-script'});
 
-var postMessage = function(msg, attempt){
-    attempt = attempt || 1;
-    if (attempt > 10){
-        console.log('Could not send message after 10 attempts. Giving up.');
-        console.log(msg);
-        return;
-    }
+var postMessage = function(msg){
     try {
         port.postMessage(msg);
     }
     catch(error){
-        var retry = function(){
-            // Note that the extension may have been disabled. In which case
-            // chrome.extension.connect logs a console error. Putting
-            // a try/catch around it doesn't help.
-            port = chrome.extension.connect({name: 'content-script'});
-            postMessage(msg, attempt + 1);
-        };
-
-        setTimeout(retry, 100);
+        // Note that the extension may have been disabled. In that case,
+        // chrome.extension.connect logs a console error when we try
+        // to reconnect and this code fails. Putting a try/catch around
+        // it didn't help. It's ok to fail if we really don't have a port.
+        port = chrome.extension.connect({name: 'content-script'});
+        port.postMessage(msg);
     }
 };
 
