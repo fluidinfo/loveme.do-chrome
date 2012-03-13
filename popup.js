@@ -142,7 +142,7 @@ function save(options){
         tagNamesAndValues[fluidinfoUsername + '/' + tagName1.value] = parseFluidinfoValue(tagValue.value);
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'tag-current-url',
+            action: 'tag-current-thing',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
         }, function(response){
@@ -203,7 +203,7 @@ function save(options){
         if (allKeywordsValid && numberOfKeywords){
             fluidinfoCallsMade++;
             chrome.extension.sendRequest({
-                action: 'tag-current-url',
+                action: 'tag-current-thing',
                 tabId: tab.id,
                 tagNamesAndValues: tagNamesAndValues
             }, function(response){
@@ -236,7 +236,7 @@ function save(options){
         if (toDelete.length){
             fluidinfoCallsMade++;
             chrome.extension.sendRequest({
-                action: 'untag-current-url',
+                action: 'untag-current-thing',
                 tabId: tab.id,
                 tags: toDelete
             }, function(response){
@@ -288,7 +288,7 @@ function save(options){
         var tagNamesAndValues = {};
         tagNamesAndValues[tagName] = true;
         chrome.extension.sendRequest({
-            action: 'tag-current-url',
+            action: 'tag-current-thing',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
         }, function(response){
@@ -308,7 +308,7 @@ function save(options){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag-current-url',
+            action: 'untag-current-thing',
             tabId: tab.id,
             tags: [tagName]
         }, function(response){
@@ -354,7 +354,7 @@ function save(options){
         var tagNamesAndValues = {};
         tagNamesAndValues[tagName] = true;
         chrome.extension.sendRequest({
-            action: 'tag-current-url',
+            action: 'tag-current-thing',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
         }, function(response){
@@ -374,7 +374,7 @@ function save(options){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag-current-url',
+            action: 'untag-current-thing',
             tabId: tab.id,
             tags: [tagName]
         }, function(response){
@@ -421,7 +421,7 @@ function save(options){
         var tagNamesAndValues = {};
         tagNamesAndValues[tagName] = newRating;
         chrome.extension.sendRequest({
-            action: 'tag-current-url',
+            action: 'tag-current-thing',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
         }, function(response){
@@ -440,7 +440,7 @@ function save(options){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag-current-url',
+            action: 'untag-current-thing',
             tabId: tab.id,
             tags: [tagName]
         }, function(response){
@@ -486,7 +486,7 @@ function save(options){
         var tagNamesAndValues = {};
         tagNamesAndValues[tagName] = comment.value;
         chrome.extension.sendRequest({
-            action: 'tag-current-url',
+            action: 'tag-current-thing',
             tabId: tab.id,
             tagNamesAndValues: tagNamesAndValues
         }, function(response){
@@ -505,7 +505,7 @@ function save(options){
     else if (deleteValue){
         fluidinfoCallsMade++;
         chrome.extension.sendRequest({
-            action: 'untag-current-url',
+            action: 'untag-current-thing',
             tabId: tab.id,
             tags: [tagName]
         }, function(response){
@@ -612,10 +612,16 @@ function fi_init(){
                 document.getElementById('_fi_not_logged_in').style.display = 'none';
                 document.getElementById('_fi_tag').style.display = '';
                 chrome.extension.sendRequest({
-                    action: 'get-existing-values',
-                    tabId: tab.id
+                    action: 'get-existing-values-for-current-thing',
+                    tab: tab
                 }, function(response){
                     if (response.success){
+                        var aTag = document.getElementById('_fi_thing_link');
+                        aTag.href = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(response.about);
+                        aTag.innerText = Mustache.render('{{about}}', {
+                            about: valueUtils.truncateAbout(response.about, 35)
+                        });
+
                         // Show the current tag values and set up the save function.
                         displayValues(fluidinfoUsername, response.existingValues);
                         document.getElementById('_fi_save').onclick = function(){
