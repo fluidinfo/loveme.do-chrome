@@ -22,7 +22,7 @@ var fluidinfoAPI = null;
 var fluidinfoUsername = null;
 
 var validateCredentials = function(options){
-    var username = settings.get('username').toLowerCase();
+    var username = settings.get('username');
     var password = settings.get('password');
 
     if (!(username && password)){
@@ -30,6 +30,7 @@ var validateCredentials = function(options){
         options.onError && options.onError('Username and password are not both set.');
     }
     else {
+        username = username.toLowerCase();
         fluidinfoAPI = fluidinfo({
             username: username,
             password: password
