@@ -14,7 +14,7 @@ These are described below.
 ADD INFO
 --------
 
-Click the extension icon to add info to the current URL.
+Click the extension icon to add info to the current URL or any currently selected text.
 
 You'll see a number of ways to add info. These include adding keywords, comments, ratings, marking pages to read later, and adding arbitrary info using a description and (an optional) value.
 
@@ -25,11 +25,11 @@ You must be logged in to add info. Click the Login tab on the left of the Option
 SEE INFO
 --------
 
-When you navigate to a page you've added to, popups will show you any info you or anyone you follow has added to it. To follow people, go to http://fluidinfo.com and log in, enter an @username to look at and click Go, then click Follow.
+When you navigate to a page you've added to, a popup will show you any info you or anyone you follow has added to it. To follow things, select text with the mouse, right-click it, and choose Follow from the context menu. Or, go to http://fluidinfo.com and log in, enter something to look at, click Go, then click Follow.
 
 The extension icon will also display a count of the number of pieces of info you've added to the page.
 
-Finally, if you select some text (a name, an email, a word, etc) and you or the people you follow have put info for that into Fluidinfo, popups will show it to you.
+Finally, if you select some text (a name, an email, a word, etc) and you or the people you follow have put info for that into Fluidinfo, a popup will show it to you.
 
 JUMP
 ----
@@ -45,7 +45,7 @@ There are many ways to quickly jump to fluidinfo.com to look at anything:
 FOLLOW
 ------
 
-In the context menu for the page, over a link or image, or with text selected, you can choose to follow that thing in Fluidinfo. You can follow anything at all: names, @names, URLs, images, words or phrases, anything!
+In the context menu for the page, over a link or image, or with text selected, you can choose to follow that thing in Fluidinfo. You can follow anything at all: names, @names, URLs, domains, images, words or phrases, anything!
 
 FEEDBACK
 --------
