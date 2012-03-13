@@ -3,27 +3,8 @@ var populate = function(options){
      * options contains about, dropNamespaces, title, tagValueHandler, wantedTags
      */
     var about = options.about;
-
-    var truncatedAbout;
-    if (about.length > 48){
-        truncatedAbout = about.slice(0, 48) + '...';
-    }
-    else {
-        truncatedAbout = about;
-    }
-
-    var url;
-    if (valueUtils.isLink(about)){
-        url = about;
-        // Chop off useless https?:// prefix.
-        var match = truncatedAbout.indexOf('://');
-        if (match > -1 && match < 6){
-            truncatedAbout = truncatedAbout.slice(match + 3);
-        }
-    }
-    else {
-        url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
-    }
+    var truncatedAbout = valueUtils.truncateAbout(about, 35);
+    var url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
 
     document.getElementById('fi_url').innerHTML = Mustache.render(
         '<a href="{{url}}" target="_blank">{{truncatedAbout}}</a>', {
