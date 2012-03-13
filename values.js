@@ -37,6 +37,22 @@ var valueUtils = {
             return str.toLowerCase();
         }
     },
+    truncateAbout: function(about, maxLen){
+        // Return a shortened form of 'about' of length at most maxLen, suitable
+        // for display.
+        if (valueUtils.isLink(about)){
+            // Chop off useless https?:// prefix.
+            var match = about.indexOf('://');
+            if (match > -1 && match < 6){
+                about = about.slice(match + 3);
+            }
+        }
+        if (about.length > maxLen){
+            about = about.slice(0, maxLen - 3) + '...';
+        }
+
+        return about;
+    },
     quoteAbout: function(s){
         // Quote an about value to make it suitable for use in a
         // fluiddb/about = " ... " query.

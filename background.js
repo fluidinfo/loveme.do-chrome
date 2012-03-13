@@ -429,7 +429,9 @@ chrome.extension.onRequest.addListener(
                 tagNamesAndValues: request.tagNamesAndValues
             });
         }
-        else if (request.action === 'tag-current-url'){
+        else if (request.action === 'tag-current-thing'){
+            // Add tags to either the object for URL of the current page or (if there
+            // is text selected) to the object for the selected text.
             if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -437,7 +439,9 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            valuesCache[request.tabId].tagValueHandler.set({
+            var cacheItem = (currentSelection && currentSelection.length < maxSelectionLengthToLookup ?
+                             'selection' : request.tabId);
+            valuesCache[cacheItem].tagValueHandler.set({
                 onError: function(response){
                     console.log('Fluidinfo API call failed:');
                     console.log(response);
@@ -454,7 +458,9 @@ chrome.extension.onRequest.addListener(
                 tagNamesAndValues: request.tagNamesAndValues
             });
         }
-        else if (request.action === 'untag-current-url'){
+        else if (request.action === 'untag-current-thing'){
+            // Remove tags from either the object for URL of the current page or (if there
+            // is text selected) from the object for the selected text.
             if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -462,7 +468,9 @@ chrome.extension.onRequest.addListener(
                 });
                 return;
             }
-            valuesCache[request.tabId].tagValueHandler.remove({
+            var cacheItem = (currentSelection && currentSelection.length < maxSelectionLengthToLookup ?
+                             'selection' : request.tabId);
+            valuesCache[cacheItem].tagValueHandler.remove({
                 onError: function(response){
                     console.log('Fluidinfo API call failed:');
                     console.log(response);
@@ -479,7 +487,10 @@ chrome.extension.onRequest.addListener(
                 tags: request.tags
             });
         }
-        else if (request.action === 'get-existing-values'){
+        else if (request.action === 'get-existing-values-for-current-thing'){
+            // Return our cache of tag values for either the object for URL of
+            // the current page or (if there is text selected) for the object for
+            // the selected text.
             if (!fluidinfoAPI){
                 sendResponse({
                     message: 'Username and password are not set. Please log in (right-click the Fluidinfo icon).',
@@ -487,9 +498,18 @@ chrome.extension.onRequest.addListener(
                 });
             }
             else {
+                if (currentSelection && currentSelection.length < maxSelectionLengthToLookup){
+                    var cacheItem = 'selection';
+                    var about = currentSelection;
+                }
+                else {
+                    var cacheItem = request.tab.id;
+                    var about = request.tab.url;
+                }
                 sendResponse({
+                    about: about,
                     success: true,
-                    existingValues: valuesCache[request.tabId].tagValueHandler.cache
+                    existingValues: valuesCache[cacheItem].tagValueHandler.cache
                 });
             }
         }
