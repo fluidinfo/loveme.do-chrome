@@ -38,7 +38,9 @@ var valueUtils = {
         }
     },
     quoteAbout: function(s){
-        return s.replace(/\"/g, '\"');
+        // Quote an about value to make it suitable for use in a
+        // fluiddb/about = " ... " query.
+        return s.replace(/\\/g, '\\\\').replace(/\"/g, '\"');
     },
     isLink: function(str){
         // Return true if str looks like an https?:// link. Don't allow < or >

@@ -1,6 +1,6 @@
 var populate = function(options){
     /*
-     * options contains about, dropNamespaces, title, valuesCache, wantedTags
+     * options contains about, dropNamespaces, title, tagValueHandler, wantedTags
      */
     var about = options.about;
 
@@ -43,7 +43,7 @@ var populate = function(options){
             dropNamespaces: options.dropNamespaces,
             fetchLinks: false,
             linkTags: true,
-            result: { data: options.valuesCache.cache },
+            result: { data: options.tagValueHandler.cache },
             showTagPaths: true,
             tagPaths: options.wantedTags
         });
