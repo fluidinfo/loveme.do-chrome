@@ -18,6 +18,8 @@ var settings = new Store('settings', {
     'notificationTimeout': 30
 });
 
+var anonFluidinfoAPI = fluidinfo();
+
 var fluidinfoAPI = null;
 var fluidinfoUsername = null;
 
@@ -817,8 +819,11 @@ var displayNotifications = function(options){
         showFolloweeTags(result);
     };
 
-    // Pull back tag paths on the object for the current about value.
-    fluidinfoAPI.api.get({
+    // Pull back tag paths on the object for the current about value. Do
+    // this as the anonymous user to make sure we don't send identifying
+    // info with lookups. Only publicly readable tags will be returned as
+    // a result.
+    anonFluidinfoAPI.api.get({
         path: ['about', valueUtils.lowercaseAboutValue(about)],
         onError: onError,
         onSuccess: onSuccess
