@@ -47,6 +47,11 @@ FOLLOW
 
 In the context menu for the page, over a link or image, or with text selected, you can choose to follow that thing in Fluidinfo. You can follow anything at all: names, @names, URLs, domains, images, words or phrases, anything!
 
+PRIVACY
+-------
+
+No identifying information is sent to Fluidinfo during normal browsing.  The extension makes requests to Fluidinfo with your username *only* to read information you have already stored, or to add new information when you ask it to.  All calls to Fluidinfo are encrypted and we do not log IP addresses. The extension source code is available for download and inspection at https://github.com/fluidinfo/obrowser-chrome-extension
+
 FEEDBACK
 --------
 
@@ -60,13 +65,9 @@ The Fluidinfo Team
 Install from the Chrome store
 -----------------------------
 
-You can install the extension most easily by visiting
-https://chrome.google.com/webstore/detail/eilipheemcfeoafinogpabomclpejioj
-and clicking 'Add to Chrome'.
+You can install the extension most easily by visiting https://chrome.google.com/webstore/detail/eilipheemcfeoafinogpabomclpejioj and clicking 'Add to Chrome'.
 
 Installing from source as an unpacked Chrome extension
 ------------------------------------------------------
 
-Visit `chrome://extensions`, turn on Developer Mode, and click `Load
-unpacked extension`. Then navigate to the directory of this extension and
-Chrome will do the rest.
+Visit `chrome://extensions`, turn on Developer Mode, and click `Load unpacked extension`. Then navigate to the directory of this extension and Chrome will do the rest.

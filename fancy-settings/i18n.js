@@ -103,6 +103,15 @@ this.i18n = {
             'you\'ll see something like: <img src="omnibox-shake-shack.png"></li>' +
             '</ul> '
     },
+    'privacy description': {
+        'en': 'No identifying information is sent to Fluidinfo during normal browsing. ' +
+              'The extension makes requests to Fluidinfo with your username ' +
+              '<em>only</em> to read information you have already stored, or to add new ' +
+              'information when you ask it to. ' +
+              'All calls to Fluidinfo are encrypted and we do not log IP addresses. ' +
+              '<a href="https://github.com/fluidinfo/obrowser-chrome-extension">The extension source code</a> ' +
+              'is available for download and inspection.'
+    },
     'feedback description': {
         'en': 'We\'d love to hear what you think and to improve the extension based on your suggestions. ' +
               'You can mail us at <a href="mailto:info@fluidinfo.com">info@fluidinfo.com</a> or come hang ' +
@@ -113,7 +122,7 @@ this.i18n = {
         'en':
             '<p>' +
             'You\'ll need a Fluidinfo account, including a password, for adding ' +
-            'info to URLs with the extension. The easiest way to set a ' +
+            'info with the extension. The easiest way to set a ' +
             'password, depends on whether you\'ve used fluidinfo.com in the ' +
             'past. Pick one of the following scenarios: ' +
             '</p>' +
@@ -137,7 +146,7 @@ this.i18n = {
 
             '<li>' +
             'If you already have a Fluidinfo account that you created ' +
-            'manually (i.e., without using Twitter login): ' +
+            'manually (i.e., not using Twitter login): ' +
             '<a href="https://fluidinfo.com/accounts/settings/">set your password</a>.' +
             '</li>' +
 
