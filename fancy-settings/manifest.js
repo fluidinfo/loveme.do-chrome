@@ -82,6 +82,13 @@ this.manifest = {
         },
         {
             'tab': i18n.get('help'),
+            'group': i18n.get('Privacy'),
+            'name': 'privacy',
+            'type': 'description',
+            'text': i18n.get('privacy description')
+        },
+        {
+            'tab': i18n.get('help'),
             'group': i18n.get('Feedback'),
             'name': 'feedback',
             'type': 'description',
