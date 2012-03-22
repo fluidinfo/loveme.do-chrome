@@ -37,6 +37,43 @@ var valueUtils = {
             return str.toLowerCase();
         }
     },
+    extractDomainFromURL: function(str){
+        var domain = str;
+        var match = this.uriRegex.exec(str);
+        if (match){
+            var postScheme = match[2];
+            var hostport;
+            var slash = postScheme.indexOf('/');
+
+            if (slash > -1){
+                var hierarchicalPart = postScheme.slice(0, slash);
+            }
+            else {
+                var hierarchicalPart = postScheme;
+            }
+
+            if (hierarchicalPart){
+                var at = hierarchicalPart.indexOf('@');
+                if (at > -1){
+                    hostport = hierarchicalPart.slice(at + 1);
+                }
+                else {
+                    hostport = hierarchicalPart;
+                }
+
+                if (hostport){
+                    var colon = hostport.indexOf(':');
+                    if (colon > -1){
+                        domain = hostport.slice(0, colon);
+                    }
+                    else {
+                        domain = hostport;
+                    }
+                }
+            }
+        }
+        return domain;
+    },
     truncateAbout: function(about, maxLen){
         // Return a shortened form of 'about' of length at most maxLen, suitable
         // for display.
