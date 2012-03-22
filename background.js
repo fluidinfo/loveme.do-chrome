@@ -845,13 +845,30 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             tabId: tabId,
             updateBadge: true
         });
+        // Update the context menu to add the current page's domain if
+        // the tab that's loading is the one that's currently being viewed.
+        // I.e., ignore tabs which are auto-reloading or loading at startup
+        // when the browser is restoring state.
+        chrome.tabs.getCurrent(function(currentTab){
+            // Note that currentTab is sometimes undefined.
+            if (currentTab && currentTab.id === tabId){
+                removeContextMenuItemsByContext('page');
+                if (! valueUtils.isChromeURL(tab.url)){
+                    var domain = valueUtils.extractDomainFromURL(tab.url);
+                    addContextMenuItem(domain, 'page');
+                }
+            }
+        });
     }
 });
 
 chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo){
     removeContextMenuItemsByContext('page');
     chrome.tabs.get(tabId, function(tab){
-        addContextMenuItem(valueUtils.extractDomainFromURL(tab.url), 'page');
+        if (! valueUtils.isChromeURL(tab.url)){
+            var domain = valueUtils.extractDomainFromURL(tab.url);
+            addContextMenuItem(domain, 'page');
+        }
     });
 });
 
@@ -862,8 +879,7 @@ chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo){
 chrome.tabs.query({}, function(tabs){
     for (var i = 0; i < tabs.length; i++){
         var tab = tabs[i];
-        if (tab.url.slice(0, 9) !== 'chrome://' &&
-            tab.url.slice(0, 18) !== 'chrome-devtools://'){
+        if (! valueUtils.isChromeURL(tab.url)){
             chrome.tabs.executeScript(tab.id, {
                 file: 'content.js'
             });

@@ -74,6 +74,10 @@ var valueUtils = {
         }
         return domain;
     },
+    isChromeURL: function(url){
+        return url.slice(0, 9) === 'chrome://' || url.slice(0, 18) === 'chrome-devtools://';
+
+    },
     truncateAbout: function(about, maxLen){
         // Return a shortened form of 'about' of length at most maxLen, suitable
         // for display.
