@@ -175,7 +175,7 @@ var absoluteHref = function(linkURL, docURL){
 // the menu item index returned by chrome.contextMenus.create.
 var contextMenuItems = {};
 
-var addContextMenuItem = function(text, type, context){
+var addContextMenuItem = function(text, context){
     // Add (possibly truncated) 'text' to the context menu, if not already present.
     text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
 
@@ -240,7 +240,7 @@ chrome.extension.onConnect.addListener(function(port){
                 if (currentSelection === null || msg.selection !== currentSelection){
                     currentSelection = msg.selection;
                     removeContextMenuItemsByContext('selection');
-                    addContextMenuItem(currentSelection, 'selection', 'selection');
+                    addContextMenuItem(currentSelection, 'selection');
                     if (currentSelection.length < maxSelectionLengthToLookup){
                         createSelectionNotifications(currentSelection);
                     }
@@ -269,7 +269,7 @@ chrome.extension.onConnect.addListener(function(port){
                 // There are <a> tags with no href in them.
                 if (msg.linkURL){
                     var url = absoluteHref(msg.linkURL, msg.docURL);
-                    addContextMenuItem(url, 'url', 'link');
+                    addContextMenuItem(url, 'link');
                 }
 
                 // And there are <a> tags with no text in them.
@@ -284,7 +284,7 @@ chrome.extension.onConnect.addListener(function(port){
                             var lower = name.toLowerCase();
                             if (lower !== 'following' && lower !== 'followers'){
                                 // Update with @name
-                                addContextMenuItem('@' + name, 'link-text', 'link');
+                                addContextMenuItem('@' + name, 'link');
 
                                 // Look for "fullname @username" text.
                                 var spaceAt = msg.text.indexOf(' @');
@@ -295,14 +295,14 @@ chrome.extension.onConnect.addListener(function(port){
                                     // will take you to something ending in %E2%80%8F (the UTF-8
                                     // for that codepoint).
                                     var fullname = msg.text.slice(0, spaceAt).replace(/^\s+|[\s\u200F]+$/g, '');
-                                    addContextMenuItem(fullname, 'link-text', 'link');
+                                    addContextMenuItem(fullname, 'link');
                                 }
                             }
 
                             return;
                         }
                     }
-                    addContextMenuItem(msg.text, 'link-text', 'link');
+                    addContextMenuItem(msg.text, 'link');
                 }
             }
             else {
@@ -845,7 +845,31 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             tabId: tabId,
             updateBadge: true
         });
+        // Update the context menu to add the current page's domain if
+        // the tab that's loading is the one that's currently being viewed.
+        // I.e., ignore tabs which are auto-reloading or loading at startup
+        // when the browser is restoring state.
+        chrome.tabs.getCurrent(function(currentTab){
+            // Note that currentTab is sometimes undefined.
+            if (currentTab && currentTab.id === tabId){
+                removeContextMenuItemsByContext('page');
+                if (! valueUtils.isChromeURL(tab.url)){
+                    var domain = valueUtils.extractDomainFromURL(tab.url);
+                    addContextMenuItem(domain, 'page');
+                }
+            }
+        });
     }
+});
+
+chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo){
+    removeContextMenuItemsByContext('page');
+    chrome.tabs.get(tabId, function(tab){
+        if (! valueUtils.isChromeURL(tab.url)){
+            var domain = valueUtils.extractDomainFromURL(tab.url);
+            addContextMenuItem(domain, 'page');
+        }
+    });
 });
 
 
@@ -855,8 +879,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
 chrome.tabs.query({}, function(tabs){
     for (var i = 0; i < tabs.length; i++){
         var tab = tabs[i];
-        if (tab.url.slice(0, 9) !== 'chrome://' &&
-            tab.url.slice(0, 18) !== 'chrome-devtools://'){
+        if (! valueUtils.isChromeURL(tab.url)){
             chrome.tabs.executeScript(tab.id, {
                 file: 'content.js'
             });
