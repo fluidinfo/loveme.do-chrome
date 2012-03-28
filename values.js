@@ -37,9 +37,9 @@ var valueUtils = {
             return str.toLowerCase();
         }
     },
-    extractDomainFromURL: function(str){
-        var domain = str;
-        var match = this.uriRegex.exec(str);
+    extractDomainFromURL: function(url){
+        var domain = url;
+        var match = this.uriRegex.exec(url);
         if (match){
             var postScheme = match[2];
             var hostport;
