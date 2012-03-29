@@ -42,17 +42,14 @@ var _renderPosts = function(posts){
      * return: an HTML string.
      */
     var content = [ _radarDivHeader ];
-
     for (var i = 0; i < posts.length; i++){
         content.push(_renderPost(posts[i]));
     }
-
     content.push(_radarDivFooter);
-
     return content.join('');
 };
 
-var renderRadar = function(about, object){
+var renderRadar = function(object, about){
     /*
      * Render content for an object that has O'Reilly Radar tags on it.
      *
@@ -63,7 +60,10 @@ var renderRadar = function(about, object){
      *     empty string.
      */
     if (object.hasOwnProperty('radar.oreilly.com/posts')){
-        return _renderPosts(JSON.parse(object['radar.oreilly.com/posts']));
+        var posts = _parseJSONTag('radar.oreilly.com/posts', object, about);
+        if (posts){
+            return _renderPosts(posts);
+        }
     }
     else {
         return '';

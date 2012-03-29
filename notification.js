@@ -1,4 +1,4 @@
-var getCustomPrefixesOnObject = function(tagPaths){
+var _getCustomPrefixesOnObject = function(tagPaths){
     var prefixes = {};
     for (prefix in customDisplayPrefixes){
         if (customDisplayPrefixes.hasOwnProperty(prefix)){
@@ -13,7 +13,7 @@ var getCustomPrefixesOnObject = function(tagPaths){
     return prefixes;
 };
 
-var filterCustomPrefixesFromTagList = function(tagPaths, customPrefixes){
+var _filterCustomPrefixesFromTagList = function(tagPaths, customPrefixes){
     var resultTags = [];
     for (var i = 0; i < tagPaths.length; i++){
         var tagPath = tagPaths[i];
@@ -53,17 +53,17 @@ var populate = function(options){
         }
     );
 
-    var customPrefixesOnObject = getCustomPrefixesOnObject(options.wantedTags);
-    var regularTags = filterCustomPrefixesFromTagList(options.wantedTags,
-                                                     customPrefixesOnObject);
+    var customPrefixesOnObject = _getCustomPrefixesOnObject(options.wantedTags);
+    var regularTags = _filterCustomPrefixesFromTagList(options.wantedTags,
+                                                       customPrefixesOnObject);
     var content = [];
 
     // Add the HTML for each of the custom prefixes on the object.
     for (prefix in customPrefixesOnObject){
         if (customPrefixesOnObject.hasOwnProperty(prefix)){
-            content.push(
-                customDisplayPrefixes[prefix](about, options.tagValueHandler.cache)
-            );
+            var func = customDisplayPrefixes[prefix];
+            var tagValues = options.tagValueHandler.cache;
+            content.push(func(tagValues, about));
         }
     }
 

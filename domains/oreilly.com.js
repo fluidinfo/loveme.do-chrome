@@ -42,7 +42,6 @@ var _renderAuthors = function(authors){
      * return: an HTML string.
      */
     var content = [ _oreillyDivHeader ];
-
     for (var i = 0; i < authors.length; i++){
         var author = authors[i].values;
         content.push(
@@ -53,9 +52,7 @@ var _renderAuthors = function(authors){
             })
         );
     }
-
     content.push(_oreillyDivFooter);
-
     return content.join('');
 };
 
@@ -70,7 +67,6 @@ var _renderBookAuthors = function(options){
     var authorNames = options.authorNames;
     var authorURLs = options.authorURLs;
     var content = [];
-
     for (var i = 0; i < authorNames.length; i++){
         content.push(
             Mustache.render(
@@ -82,7 +78,6 @@ var _renderBookAuthors = function(options){
             )
         );
     }
-
     return content.join(', ');
 };
 
@@ -132,7 +127,6 @@ var _renderBooks = function(books){
      * return: an HTML string.
      */
     var content = [ _oreillyDivHeader ];
-
     for (var i = 0; i < books.length; i++){
         var book = books[i].values;
         content.push(
@@ -145,13 +139,11 @@ var _renderBooks = function(books){
             })
         );
     }
-
     content.push(_oreillyDivFooter);
-
     return content.join('');
 };
 
-var renderOReilly = function(about, object){
+var renderOReilly = function(object, about){
     /*
      * Render content for an object that has O'Reilly tags on it.
      *
@@ -162,10 +154,16 @@ var renderOReilly = function(about, object){
      *     empty string.
      */
     if (object.hasOwnProperty('oreilly.com/demo/book-info')){
-        return _renderBooks(JSON.parse(object['oreilly.com/demo/book-info']));
+        var books = _parseJSONTag('oreilly.com/demo/book-info', object, about);
+        if (books){
+            return _renderBooks(books);
+        }
     }
     else if (object.hasOwnProperty('oreilly.com/demo/author-info')){
-        return _renderAuthors(JSON.parse(object['oreilly.com/demo/author-info']));
+        var authors = _parseJSONTag('oreilly.com/demo/author-info', object, about);
+        if (authors){
+            return _renderAuthors(authors);
+        }
     }
     else {
         return '';
