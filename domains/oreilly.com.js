@@ -192,7 +192,5 @@ var renderOReilly = function(object, about){
             return _renderAuthors([ author ]);
         }
     }
-    else {
-        return '';
-    }
+    return '';
 };
