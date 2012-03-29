@@ -35,21 +35,24 @@ var _filterCustomPrefixesFromTagList = function(tagPaths, customPrefixes){
 
 var populate = function(options){
     /*
-     * options contains about, dropNamespaces, title, tagValueHandler, wantedTags
+     * options contains:
+     *     about
+     *     dropNamespaces
+     *     loggedIn
+     *     title
+     *     tagValueHandler
+     *     wantedTags
      */
     var about = options.about;
     var truncatedAbout = valueUtils.truncateAbout(about, 35);
     var url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
 
+    document.getElementById('fi_login').style.display = (options.loggedIn ? 'none' : '');
+    document.getElementById('fi_title').innerHTML = options.title;
     document.getElementById('fi_url').innerHTML = Mustache.render(
         '<a href="{{url}}" target="_blank">{{truncatedAbout}}</a>', {
             truncatedAbout: truncatedAbout,
             url: url
-        }
-    );
-    document.getElementById('fi_title').innerHTML = Mustache.render(
-        '{{title}}', {
-            title: options.title
         }
     );
 

@@ -585,10 +585,6 @@ var deleteNotificationForTab = function(tabId, type){
 };
 
 var displayNotifications = function(options){
-    // If the user isn't logged in, do nothing.
-    if (!fluidinfoAPI){
-        return;
-    }
     var tabId = options.tabId;
     var about = options.about;
     var updateBadge = options.updateBadge;
@@ -599,7 +595,7 @@ var displayNotifications = function(options){
         tagPaths: {}, // Will be filled in in onSuccess, below.
         tagValueHandler: makeTagValueHandler({
             about: about,
-            session: fluidinfoAPI
+            session: fluidinfoAPI || anonFluidinfoAPI
         })
     };
 
@@ -609,6 +605,10 @@ var displayNotifications = function(options){
     };
 
     var showUsersTags = function(result){
+        // If the user isn't logged in, do nothing.
+        if (!fluidinfoAPI){
+            return;
+        }
         var tagPaths = result.data.tagPaths;
         var wantedTags = [];
         for (var i = 0; i < tagPaths.length; i++){
@@ -782,11 +782,22 @@ var displayNotifications = function(options){
                                     (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
                                     if (win.populate){
                                         win._fluidinfo_info = info;
+
+                                        if (fluidinfoAPI){
+                                            var loggedIn = true;
+                                            var title = 'People you follow have added info to';
+                                        }
+                                        else {
+                                            var loggedIn = false;
+                                            var title = 'A sample of info for';
+                                        }
+
                                         win.populate({
-                                            dropNamespaces: false,
-                                            title: 'People you follow have added info to',
                                             about: about,
+                                            dropNamespaces: false,
+                                            loggedIn: loggedIn,
                                             tagValueHandler: valuesCache[tabId].tagValueHandler,
+                                            title: title,
                                             wantedTags: wantedTags
                                         });
                                         found = true;
@@ -806,10 +817,19 @@ var displayNotifications = function(options){
             }
         };
 
-        // Get the about values from the objects the user follows.
-        fluidinfoAPI.query({
+        // Get the about values from the objects the user follows (or the
+        // objects the anon user follows if the user is not logged in).
+        if (fluidinfoAPI){
+            var api = fluidinfoAPI;
+            var followsTag = fluidinfoUsername + '/follows';
+        }
+        else {
+            var api = anonFluidinfoAPI;
+            var followsTag = 'anon/follows';
+        }
+        api.query({
             select: ['fluiddb/about'],
-            where: ['has ' + fluidinfoUsername + '/follows' ],
+            where: ['has ' + followsTag ],
             onError: onError,
             onSuccess: onSuccess
         });
