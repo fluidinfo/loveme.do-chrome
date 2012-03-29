@@ -1,0 +1,21 @@
+.oreilly {
+    margin-bottom: 5px;
+}
+
+.oreilly-cover-image {
+    margin-top: 3px;
+    margin-right: 6px;
+    max-height: 50px;
+    float: left;
+}
+
+#oreilly-header {
+    font-family: 'Varela Round',Helvetica,Arial,sans-serif;
+    font-size: 14px;
+}
+
+#oreilly-logo {
+    margin-left: 6px;
+    max-height: 50px;
+    max-width: 100px;
+}
