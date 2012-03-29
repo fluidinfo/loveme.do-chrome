@@ -664,10 +664,11 @@ var displayNotifications = function(options){
                                 if (win.populate){
                                     win._fluidinfo_info = info;
                                     win.populate({
-                                        dropNamespaces: true,
-                                        title: 'Your info for',
                                         about: about,
+                                        dropNamespaces: true,
+                                        loggedIn: true,
                                         tagValueHandler: valuesCache[tabId].tagValueHandler,
+                                        title: 'Your info for',
                                         wantedTags: wantedTags
                                     });
                                     found = true;
