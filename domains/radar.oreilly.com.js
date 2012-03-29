@@ -1,6 +1,6 @@
 var _radarDivHeader = (
     '<div class="radar">' +
-      '<a href="http://www.oreilly.com/">' +
+      '<a href="http://www.oreilly.com/" target="_blank">' +
         '<img id="radar-logo" src="' +
           chrome.extension.getURL('domains/radar.oreilly.com.png') +
         '"/>' +
@@ -24,7 +24,7 @@ var _renderPost = function(post){
     return Mustache.render(
         (
             '<li>' +
-            '<a href="{{ url }}">{{ title }}</a>' +
+            '<a href="{{ url }}" target="_blank">{{ title }}</a>' +
             '</li>'
         ),
         post
