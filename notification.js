@@ -1,3 +1,6 @@
+// Note: customDisplayPrefixes is already in scope in this file.
+// It's a global, declared in domains/domains.js
+
 var _getCustomPrefixesOnObject = function(tagPaths){
     var prefixes = {};
     for (prefix in customDisplayPrefixes){
