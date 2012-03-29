@@ -718,7 +718,8 @@ var displayNotifications = function(options){
             var i;
 
             // Get the name part of all about values that look like "@name"
-            // as these can be considered a user that this user is following.
+            // or a domain, as these can be considered a user that this user
+            // is following.
             var userIsFollowingSomething = false;
             var data = following.data;
             for (i = 0; i < data.length; i++){
