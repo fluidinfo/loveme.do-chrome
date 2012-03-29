@@ -1,0 +1,25 @@
+.oreilly {
+    margin-bottom: 5px;
+}
+
+.oreilly-author-image {
+    margin-right: 8px;
+    margin-bottom: 4px;
+    max-height: 50px;
+    float: left;
+    border: 1px solid #ccc;
+}
+
+.oreilly-cover-image {
+    margin-top: 3px;
+    margin-right: 6px;
+    max-height: 50px;
+    float: left;
+    border: 1px solid #ccc;
+}
+
+#oreilly-logo {
+    margin-left: 0px;
+    max-height: 60px;
+    max-width: 120px;
+}
