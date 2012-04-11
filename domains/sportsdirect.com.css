@@ -1,0 +1,23 @@
+.sportsdirect {
+    margin-bottom: 5px;
+}
+
+#sportsdirect-header {
+    font-family: 'Varela Round',Helvetica,Arial,sans-serif;
+    font-size: 14px;
+}
+
+#sportsdirect-logo {
+    margin-left: 0px;
+    max-height: 80px;
+    max-width: 160px;
+}
+
+.sportsdirect-product-img {
+    margin-left: 0px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    max-height: 80px;
+    max-width: 80px;
+    float: left;
+}
