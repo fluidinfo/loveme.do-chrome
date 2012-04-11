@@ -24,9 +24,12 @@ var renderSportsDirect = function(object, about){
 	return Mustache.render((
                 _sportsDirectDivHeader +
 	        '<a href="{{ url }}" target="_blank"><img class="sportsdirect-product-img" src="{{ image }}"/>{{ title }}. {{ price }}</a>' +
+                '<p>{{{ description }}}</p>' +
+                 '<div style="clear: both;"></div>' +
                 _sportsDirectDivFooter
             ),
 	    {
+                'description': object['sportsdirect.com/description'],
                 'image': object['sportsdirect.com/image'],
                 'price': object['sportsdirect.com/price'],
                 'title': object['sportsdirect.com/title'],

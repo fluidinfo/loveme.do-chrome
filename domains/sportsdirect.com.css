@@ -16,6 +16,8 @@
 .sportsdirect-product-img {
     margin-left: 0px;
     margin-right: 5px;
-    max-height: 60px;
-    max-width: 60px;
+    margin-bottom: 5px;
+    max-height: 80px;
+    max-width: 80px;
+    float: left;
 }
