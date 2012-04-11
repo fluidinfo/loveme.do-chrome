@@ -5,11 +5,10 @@ var _sportsDirectDivHeader = (
           chrome.extension.getURL('domains/sportsdirect.com.png') +
         '"/>' +
       '</a>' +
-      '<br/>' +
-      '<ul>'
+      '<br/>'
 );
 
-var _sportsDirectDivFooter = '</ul></div>';
+var _sportsDirectDivFooter = '</div>';
 
 var renderSportsDirect = function(object, about){
     /*
@@ -21,16 +20,19 @@ var renderSportsDirect = function(object, about){
      * return: an HTML string if sports direct tags are found, else the
      *     empty string.
      */
-    if (object.hasOwnProperty('sportsdirect.com/url') &&
-	    object.hasOwnProperty('sportsdirect.com/title')){
-		return Mustache.render((
-			'<li>' +
-			'<a href="{{ url }}" target="_blank">Buy {{ about }} for {{ price}}</a>' +
-			'</li>'),
-			{'about': about,
-			 'url': object['sportsdirect.com/url'],
-			 'price': object['sportsdirect.com/price']}
-		);
+    if (object.hasOwnProperty('sportsdirect.com/url')){
+	return Mustache.render((
+                _sportsDirectDivHeader +
+	        '<a href="{{ url }}" target="_blank"><img class="sportsdirect-product-img" src="{{ image }}"/>{{ title }}. {{ price }}</a>' +
+                _sportsDirectDivFooter
+            ),
+	    {
+                'image': object['sportsdirect.com/image'],
+                'price': object['sportsdirect.com/price'],
+                'title': object['sportsdirect.com/title'],
+                'url': object['sportsdirect.com/url']
+            }
+	);
     }
     else {
         return '';

@@ -1,6 +1,6 @@
 {
   "name": "Fluidinfo",
-  "version": "1.4.34",
+  "version": "1.4.50",
   "description": "Add your info to URLs, and jump to Fluidinfo pages for them and for selected text.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
