@@ -21,10 +21,11 @@ var _telegraphPost = function(post){
      *
      * return: an HTML string.
      */
+    post.date = post['publication-date'].replace(' BST', '').replace(' 2012', '').replace('AM ', 'am ').replace('PM ', 'pm ');
     return Mustache.render(
         (
             '<li>' +
-            '<a href="{{ url }}" target="_blank">{{ title }}</a>' +
+            '<a href="{{ url }}" target="_blank">{{ title }}</a> <span class="date">{{ date }}</span>' +
             '</li>'
         ),
         post
@@ -43,7 +44,7 @@ var _renderPosts = function(posts){
      */
     var content = [ _telegraphDivHeader ];
     for (var i = 0; i < posts.length; i++){
-        content.push(_renderPost(posts[i]));
+        content.push(_telegraphPost(posts[i]));
     }
     content.push(_telegraphDivFooter);
     return content.join('');
