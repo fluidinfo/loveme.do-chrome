@@ -21,11 +21,10 @@ var _telegraphPost = function(post){
      *
      * return: an HTML string.
      */
-    post.date = post['publication-date'].replace(' BST', '').replace(' 2012', '').replace('AM ', 'am ').replace('PM ', 'pm ');
     return Mustache.render(
         (
             '<li>' +
-            '<a href="{{ url }}" target="_blank">{{ title }}</a> <span class="date">{{ date }}</span>' +
+            '<a href="{{ url }}" target="_blank">{{ title }}</a> <span class="date">{{ publication-date }}</span>' +
             '</li>'
         ),
         post
