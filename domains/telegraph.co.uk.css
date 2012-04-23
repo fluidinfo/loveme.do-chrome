@@ -22,3 +22,8 @@
     max-height: 60px;
     max-width: 120px;
 }
+
+.date {
+    color: grey;
+    font-size: 12px;
+}

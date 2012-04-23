@@ -24,7 +24,7 @@ var _telegraphPost = function(post){
     return Mustache.render(
         (
             '<li>' +
-            '<a href="{{ url }}" target="_blank">{{ title }}</a>' +
+            '<a href="{{ url }}" target="_blank">{{ title }}</a> <span class="date">{{ publication-date }}</span>' +
             '</li>'
         ),
         post
@@ -43,7 +43,7 @@ var _renderPosts = function(posts){
      */
     var content = [ _telegraphDivHeader ];
     for (var i = 0; i < posts.length; i++){
-        content.push(_renderPost(posts[i]));
+        content.push(_telegraphPost(posts[i]));
     }
     content.push(_telegraphDivFooter);
     return content.join('');
