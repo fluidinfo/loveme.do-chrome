@@ -1,6 +1,6 @@
 var customDisplayPrefixes = {
-    'oreilly.com/': renderOReilly,
-    'radar.oreilly.com/': renderRadar,
-    'sportsdirect.com/': renderSportsDirect,
-    'telegraph.co.uk/': renderTelegraph
+    'oreilly.com/': oreillyPlugin.render,
+    'radar.oreilly.com/': radarPlugin.render,
+    'sportsdirect.com/': sportsDirectPlugin.render,
+    'telegraph.co.uk/': telegraphPlugin.render
 };
