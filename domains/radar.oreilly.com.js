@@ -68,9 +68,7 @@ var radarPlugin = (function() {
                 return _renderPosts(posts);
             }
         }
-        else {
-            return '';
-        }
+        return '';
     };
 
     return my;
