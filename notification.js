@@ -43,12 +43,20 @@ var populate = function(options){
      *     dropNamespaces
      *     loggedIn
      *     title
+     *     tabId
      *     tagValueHandler
      *     wantedTags
      */
     var about = options.about;
     var truncatedAbout = valueUtils.truncateAbout(about, 35);
     var url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
+    
+    // For now, show the sidebar whenever there's something to show.
+    var port = chrome.tabs.connect(options.tabId, {name: 'sidebar'});
+    port.postMessage({
+        about: options.about,
+        action: 'show sidebar'
+    });
 
     document.getElementById('fi_login').style.display = (options.loggedIn ? 'none' : '');
     document.getElementById('fi_title').innerHTML = options.title;
@@ -65,6 +73,7 @@ var populate = function(options){
     var content = [];
 
     // Add the HTML for each of the custom prefixes on the object.
+    var prefix;
     for (prefix in customPrefixesOnObject){
         if (customPrefixesOnObject.hasOwnProperty(prefix)){
             var func = customDisplayPrefixes[prefix];
