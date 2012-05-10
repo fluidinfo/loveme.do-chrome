@@ -15,7 +15,9 @@ var followeeRegex = /^@?([\w\.]+)$/;
 // -----------------  Settings, creds, Fluidinfo API -----------------
 
 var settings = new Store('settings', {
-    'notificationTimeout': 30
+    notificationTimeout: 30,
+    sidebarSide: 'left',
+    sidebarWidth: 300
 });
 
 var anonFluidinfoAPI = fluidinfo();
@@ -205,6 +207,7 @@ var addContextMenuItem = function(text, context){
 };
 
 var removeContextMenuItemsByContext = function(context){
+    var text;
     for (text in contextMenuItems){
         if (typeof contextMenuItems[text] !== 'undefined' &&
             contextMenuItems[text].context === context){
@@ -238,14 +241,14 @@ chrome.extension.onConnect.addListener(function(port){
         port.onMessage.addListener(function(msg){
             if (typeof msg.selection !== 'undefined'){
                 if (currentSelection === null || msg.selection !== currentSelection){
-                    currentSelection = msg.selection;
-                    removeContextMenuItemsByContext('selection');
-                    addContextMenuItem(currentSelection, 'selection');
-                    if (currentSelection.length < maxSelectionLengthToLookup){
-                        createSelectionNotifications(currentSelection);
-                    }
                     chrome.tabs.getSelected(null, function(tab){
                         tabThatCreatedCurrentSelection = tab.id;
+                        currentSelection = msg.selection;
+                        removeContextMenuItemsByContext('selection');
+                        addContextMenuItem(currentSelection, 'selection');
+                        if (currentSelection.length < maxSelectionLengthToLookup){
+                            createSelectionNotifications(currentSelection);
+                        }
                     });
                 }
             }
@@ -265,17 +268,19 @@ chrome.extension.onConnect.addListener(function(port){
                 // The mouse moved over a new link. Remove existing link-related
                 // context menu items.
                 removeContextMenuItemsByContext('link');
+                
+                var url;
 
                 // There are <a> tags with no href in them.
                 if (msg.linkURL){
-                    var url = absoluteHref(msg.linkURL, msg.docURL);
+                    url = absoluteHref(msg.linkURL, msg.docURL);
                     addContextMenuItem(url, 'link');
                 }
 
                 // And there are <a> tags with no text in them.
                 if (msg.text){
                     if (msg.linkURL){
-                        var url = absoluteHref(msg.linkURL, msg.docURL);
+                        url = absoluteHref(msg.linkURL, msg.docURL);
                         var match = twitterUserURLRegex.exec(url);
                         if (match !== null){
                             // We can test against match[1] as the regexp captures the username,
@@ -310,6 +315,10 @@ chrome.extension.onConnect.addListener(function(port){
                 console.log(msg);
             }
         });
+    }
+    else {
+        console.log('Got connection on port with unknown name.');
+        console.log(port);
     }
 });
 
@@ -382,7 +391,7 @@ var addFollow = function(toFollow){
     });
 };
 
-// ------------------- Tagging (from the popup) ----------------
+// ------------------- Listen for requests.
 
 chrome.extension.onRequest.addListener(
     function(request, sender, sendResponse){
@@ -392,15 +401,19 @@ chrome.extension.onRequest.addListener(
         else if (request.action === 'logout'){
             fluidinfoAPI = fluidinfoUsername = null;
         }
+        else if (request.action === 'get-settings'){
+            sendResponse(settings.toObject());
+        }
         else if (request.action === 'validate-credentials'){
             validateCredentials({
                 onError: function(response){
+                    var message;
                     if (response.hasOwnProperty('status')){
-                        var message = ('Authentication failed: ' + response.statusText +
-                                       ' (status ' + response.status + ').');
+                        message = ('Authentication failed: ' + response.statusText +
+                                   ' (status ' + response.status + ').');
                     }
                     else {
-                        var message = response;
+                        message = response;
                     }
                     sendResponse({
                         message: message,
@@ -600,8 +613,11 @@ var displayNotifications = function(options){
     };
 
     var onError = function(result){
-        console.log('Got error from Fluidinfo fetching tags for about ' + about);
-        console.log(result);
+        // Ignore 404 errors, which just indicate there are no tags for the object.
+        if (result.status != 404){
+            console.log('Got error from Fluidinfo fetching tags for about ' + about);
+            console.log(result);
+        }
     };
 
     var showUsersTags = function(result){
@@ -667,6 +683,7 @@ var displayNotifications = function(options){
                                         about: about,
                                         dropNamespaces: true,
                                         loggedIn: true,
+                                        tabId: (tabId === 'selection' ? tabThatCreatedCurrentSelection : tabId),
                                         tagValueHandler: valuesCache[tabId].tagValueHandler,
                                         title: 'Your info for',
                                         wantedTags: wantedTags
@@ -783,20 +800,22 @@ var displayNotifications = function(options){
                                     (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
                                     if (win.populate){
                                         win._fluidinfo_info = info;
-
+                                        var loggedIn,
+                                            title;
                                         if (fluidinfoAPI){
-                                            var loggedIn = true;
-                                            var title = 'People you follow have added info to';
+                                            loggedIn = true;
+                                            title = 'People you follow have added info to';
                                         }
                                         else {
-                                            var loggedIn = false;
-                                            var title = 'A sample of info for';
+                                            loggedIn = false;
+                                            title = 'A sample of info for';
                                         }
 
                                         win.populate({
                                             about: about,
                                             dropNamespaces: false,
                                             loggedIn: loggedIn,
+                                            tabId: (tabId === 'selection' ? tabThatCreatedCurrentSelection : tabId),
                                             tagValueHandler: valuesCache[tabId].tagValueHandler,
                                             title: title,
                                             wantedTags: wantedTags
@@ -820,13 +839,15 @@ var displayNotifications = function(options){
 
         // Get the about values from the objects the user follows (or the
         // objects the anon user follows if the user is not logged in).
+        var api,
+            followsTag;
         if (fluidinfoAPI){
-            var api = fluidinfoAPI;
-            var followsTag = fluidinfoUsername + '/follows';
+            api = fluidinfoAPI;
+            followsTag = fluidinfoUsername + '/follows';
         }
         else {
-            var api = anonFluidinfoAPI;
-            var followsTag = 'anon/follows';
+            api = anonFluidinfoAPI;
+            followsTag = 'anon/follows';
         }
         api.query({
             select: ['fluiddb/about'],
@@ -895,16 +916,19 @@ chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo){
 });
 
 
-// Inject our content script into existing tabs, skipping chrome's own
+// Inject our content scripts into existing tabs, skipping chrome's own
 // tabs (trying to inject into them gives a console error message).
 
 chrome.tabs.query({}, function(tabs){
+    var files = ['shortcut.js', 'sidebar.js', 'content.js'];
     for (var i = 0; i < tabs.length; i++){
         var tab = tabs[i];
         if (! valueUtils.isChromeURL(tab.url)){
-            chrome.tabs.executeScript(tab.id, {
-                file: 'content.js'
-            });
+            for (var j = 0; j < files.length; j++){
+                chrome.tabs.executeScript(tab.id, {
+                    file: files[j]
+                });
+            }
         }
     }
 });

@@ -1,6 +1,6 @@
 {
   "name": "Fluidinfo",
-  "version": "1.4.64",
+  "version": "1.4.148",
   "description": "Add your info to URLs, and jump to Fluidinfo pages for them and for selected text.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
@@ -26,6 +26,12 @@
     "default_title": "Fluidinfo"
   },
   "content_scripts": [
+    {
+      "css": ["sidebar.css"],
+      "js": ["shortcut.js", "sidebar.js"],
+      "matches": ["<all_urls>"],
+      "run_at": "document_start"
+    },
     {
       "js": ["content.js"],
       "matches": ["<all_urls>"],

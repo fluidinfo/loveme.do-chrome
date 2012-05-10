@@ -96,6 +96,37 @@ this.manifest = {
         },
         {
             'tab': i18n.get('options'),
+            'group': i18n.get('Sidebar'),
+            'name': 'sidebarSideDescription',
+            'type': 'description',
+            'text': i18n.get('sidebar side description')
+        },
+        {
+            'tab': i18n.get('options'),
+            'group': i18n.get('Sidebar'),
+            'name': 'sidebarSide',
+            'type': 'radioButtons',
+            'options': [
+                ['left', i18n.get('left')],
+                ['right', i18n.get('right')]
+            ]
+        },
+        {
+            'tab': i18n.get('options'),
+            'group': i18n.get('Sidebar'),
+            'name': 'sidebarWidth',
+            'type': 'slider',
+            'label': 'Sidebar width:',
+            'max': 600,
+            'min': 150,
+            'step': 10,
+            'display': true,
+            'displayModifier': function (value){
+                return parseInt(value);
+            }
+        },
+        {
+            'tab': i18n.get('options'),
             'group': i18n.get('Notifications'),
             'name': 'notificationDescription',
             'type': 'description',
