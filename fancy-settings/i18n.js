@@ -9,6 +9,15 @@ this.i18n = {
         'en': 'Options',
         'de': 'Optionen'
     },
+    'sidebar': {
+        'en': 'Sidebar'
+    },
+    'left': {
+        'en': 'Left'
+    },
+    'right': {
+        'en': 'Right'
+    },
     'search': {
         'en': 'Search',
         'de': 'Suche'
@@ -178,6 +187,10 @@ this.i18n = {
               'to show you. The notification can stay on screen indefinitely ' +
               '(until you close it manually) or can vanish automatically after a time ' +
               'you specify.'
+    },
+    'sidebar side description': {
+        'en': 'Should the sidebar open ' +
+              'on the left or on the right?'
     },
     'logout': {
         'en': 'Logout',
