@@ -7,9 +7,8 @@ var currentSelection = null;
 var tabThatCreatedCurrentSelection = null;
 var maxSelectionLengthToLookup = 200;
 
-// Things we consider as possibly being an about value that's a
-// corresponds to something that's being followed, e.g.,
-// '@username' or 'wordnik.com'.
+// Things we consider as possibly being an about value that corresponds to
+// something that's being followed, e.g., '@username' or 'wordnik.com'.
 var followeeRegex = /^@?([\w\.]+)$/;
 
 // -----------------  Settings, creds, Fluidinfo API -----------------
@@ -403,6 +402,12 @@ chrome.extension.onRequest.addListener(
         }
         else if (request.action === 'get-settings'){
             sendResponse(settings.toObject());
+        }
+        else if (request.action === 'update-current-tab-url'){
+            // TODO: use me from the sidebar iframe.
+            chrome.tabs.update(sender.tab.id, {
+                url: request.url
+            });
         }
         else if (request.action === 'validate-credentials'){
             validateCredentials({

@@ -1,90 +1,69 @@
-// TODO: this is not needed?
-var currentAbout = null;
+/*
+ * infomaniacHost is the hostname (possibly with a colon & port) from which
+ * to load sidebar content in an iframe. Use 'localhost:8000' for local
+ * testing, 'new.fluidinfo.com' for the staging server, and 'fluidinfo.com'
+ * for extension deployments to the Chrome store.
+ */
+var infomaniacHost = 'new.fluidinfo.com';
 
-var hideSidebar = function(){
-    var sidebar = document.getElementById('fi_sidebar');
-    if (sidebar){
-        sidebar.style.display = 'none';
-    }
-    else {
-        console.log('Sidebar logic error: hideSidebar ' +
-                    'called, but no sidebar element exists.');
-    }
+var hideSidebar = function(sidebar){
+    sidebar.style.display = 'none';
 };
 
-var showSidebar = function(){
-    var sidebar = document.getElementById('fi_sidebar');
-    if (sidebar){
-        console.log('Displaying sidebar.');
-        sidebar.style.display = 'block';
-    }
-    else {
-        console.log('Sidebar logic error: showSidebar ' +
-                    'called, but no sidebar element exists.');
-    }
+var showSidebar = function(sidebar){
+    sidebar.style.display = 'block';
+};
+
+var getSidebar = function(){
+    return document.getElementById('fi_sidebar');
+};
+
+var updateSidebar = function(sidebar, about){
+    sidebar.src = 'http://' + infomaniacHost + '/infomaniac/' + encodeURIComponent(about);
 };
 
 var toggleSidebar = function(){
-    var sidebar = document.getElementById('fi_sidebar');
-    console.log('sidebar toggle. element is');
-    console.log(sidebar);
+    var sidebar = getSidebar();
     if (sidebar){
-        sidebar.style.display = (sidebar.style.display === 'none' ? 'block' : 'none');
+        if (sidebar.style.display === 'none'){
+            showSidebar(sidebar);
+        }
+        else {
+            hideSidebar(sidebar);
+        }
     }
     else {
         // There is no sidebar. Create one showing the Fluidinfo object for
         // the current document url, and display it.
-        createOrUpdateSidebar(document.location.toString(), function(){
-            showSidebar();
+        createSidebar(function(sidebar){
+            updateSidebar(sidebar, document.location.toString());
+            showSidebar(sidebar);
         });
     }
 };
 
-var createOrUpdateSidebar = function(about, callback){
-    /*
-     * Create a new (hidden) sidebar or update the url of the current
-     * sidebar element. Do not change the display property if the sidebar
-     * already exists.
-     */
-    var sidebar = document.getElementById('fi_sidebar');
-    
-    if (sidebar){
-        // The sidebar element already exists.
-        // TODO: perhaps do nothing if the currentAbout is the one we were passed?
-        // Setting the value likely causes a reload.
-        console.log('Found existing sidebar element, updating its URL.');
-        currentAbout = about;
-        sidebar.src = 'http://new.fluidinfo.com/infomaniac/' + encodeURIComponent(about);
-        callback();
-    }
-    else {
-        // The sidebar element doesn't exist. Make it.
-        var parent = (document.getElementsByTagName('body')[0] ||
-                      document.getElementsByTagName('html')[0]);
-
-        if (!parent){
-            console.log('Could not find body or html element on page!');
-            return;
-        }
-        
+var createSidebar = function(callback){
+    var parent = (document.getElementsByTagName('body')[0] ||
+                  document.getElementsByTagName('html')[0]);
+    if (parent){
         // Get the current settings so we know what style & size to use.
         chrome.extension.sendRequest(
             {action: 'get-settings'},
-            function(options){
-                console.log('Creating new sidebar element.');
-                console.log(options);
-                sidebar = document.createElement('iframe');
+            function(settings){
+                var sidebar = document.createElement('iframe');
                 sidebar.id = 'fi_sidebar';
                 sidebar.classList.add('sidebar');
-                sidebar.classList.add(options.sidebarSide);
-		sidebar.setAttribute('width', options.sidebarWidth + 'px');
-                sidebar.src = 'http://new.fluidinfo.com/infomaniac/' + encodeURIComponent(about);
+                sidebar.classList.add(settings.sidebarSide);
+                sidebar.setAttribute('width', settings.sidebarWidth + 'px');
                 sidebar.title = 'Fluidinfo sidebar';
                 parent.appendChild(sidebar);
-                currentAbout = about;
-                callback();
+                callback(sidebar);
             }
-        );        
+        );
+    }
+    else {
+        console.log('Could not find body or html element on page!');
+        callback(null);
     }
 };
 
@@ -94,10 +73,17 @@ chrome.extension.onConnect.addListener(function(port){
     console.assert(port.name === 'sidebar');
     port.onMessage.addListener(function(msg) {
         if (msg.action === 'show sidebar'){
-            console.log('show sidebar message received.');
-            createOrUpdateSidebar(msg.about, function(){
-                showSidebar();
-            });
+            var sidebar = getSidebar();
+            if (sidebar){
+                updateSidebar(sidebar, msg.about);
+                showSidebar(sidebar);
+            }
+            else {
+                createSidebar(function(sidebar){
+                    updateSidebar(sidebar, msg.about);
+                    showSidebar(sidebar);
+                });
+            }
         }
         else {
             console.log('got unknown mesg from notification popup:');
