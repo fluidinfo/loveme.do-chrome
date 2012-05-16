@@ -11,10 +11,20 @@
 
 .sidebar.right {
     border-left: 1px solid #ccc;
+    box-shadow: -2px 0px 1px 1px rgba(0, 0, 0, 0.2);
     right: 0;
 }
 
 .sidebar.left {
     border-right: 1px solid #ccc;
+    box-shadow: 2px 0px 1px 1px rgba(0, 0, 0, 0.2);
     left: 0;
+}
+
+/* This is for the extension X (close sidebar) image. */
+#close {
+    float: right;
+    height: 32px;
+    margin-right: 6px;
+    width: 32px;
 }
