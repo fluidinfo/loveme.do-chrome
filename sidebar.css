@@ -1,4 +1,4 @@
-.sidebar {
+.fluidinfo_sidebar {
     background-color: white;
     border-width: 0;
     display: none;
@@ -9,13 +9,13 @@
     z-index: 9999999999;
 }
 
-.sidebar.right {
+.fluidinfo_sidebar.fluidinfo_sidebar_right {
     border-left: 1px solid #ccc;
     box-shadow: -2px 0px 1px 1px rgba(0, 0, 0, 0.2);
     right: 0;
 }
 
-.sidebar.left {
+.fluidinfo_sidebar.fluidinfo_sidebar_left {
     border-right: 1px solid #ccc;
     box-shadow: 2px 0px 1px 1px rgba(0, 0, 0, 0.2);
     left: 0;

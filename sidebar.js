@@ -57,8 +57,8 @@ var createSidebar = function(callback){
             function(settings){
                 var sidebar = document.createElement('iframe');
                 sidebar.id = 'fi_sidebar';
-                sidebar.classList.add('sidebar');
-                sidebar.classList.add(settings.sidebarSide);
+                sidebar.classList.add('fluidinfo_sidebar');
+                sidebar.classList.add('fluidinfo_sidebar_' + settings.sidebarSide);
                 sidebar.setAttribute('width', settings.sidebarWidth + 'px');
                 sidebar.title = 'Fluidinfo sidebar';
                 parent.appendChild(sidebar);
