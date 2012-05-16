@@ -3,56 +3,6 @@ this.manifest = {
     'icon': '../fi_32.png',
     'settings': [
         {
-            'tab': i18n.get('login'),
-            'group': i18n.get('password'),
-            'name': 'passwordDescription',
-            'type': 'description',
-            'text': i18n.get('password description')
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('login'),
-            'name': 'credentialsDescription',
-            'type': 'description',
-            'text': i18n.get('credentials description')
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('login'),
-            'name': 'username',
-            'type': 'text',
-            'label': i18n.get('username')
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('login'),
-            'name': 'password',
-            'type': 'text',
-            'label': i18n.get('password'),
-            'masked': true
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('login'),
-            'name': 'valid',
-            'type': 'description',
-            'text': i18n.get('valid description')
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('logout'),
-            'name': 'logoutDescription',
-            'type': 'description',
-            'text': i18n.get('logout description')
-        },
-        {
-            'tab': i18n.get('login'),
-            'group': i18n.get('logout'),
-            'name': 'logout',
-            'type': 'button',
-            'text': i18n.get('Logout')
-        },
-        {
             'tab': i18n.get('help'),
             'group': i18n.get('about'),
             'name': 'about',
@@ -164,11 +114,5 @@ this.manifest = {
                 return text;
             }
         }
-    ],
-    'alignment': [
-        [
-            'username',
-            'password'
-        ]
     ]
 };
