@@ -6,6 +6,11 @@
  */
 var infomaniacHost = 'new.fluidinfo.com';
 
+var backgroundPort = chrome.extension.connect({
+    name: 'content-script'
+});
+
+
 var hideSidebar = function(sidebar){
     sidebar.style.display = 'none';
 };
@@ -68,12 +73,13 @@ var createSidebar = function(callback){
 };
 
 
-// Listen for instructions from notification pop-ups.
+// Listen for instructions from notification pop-ups or from the background page.
 chrome.extension.onConnect.addListener(function(port){
     console.assert(port.name === 'sidebar');
     port.onMessage.addListener(function(msg) {
+        var sidebar;
         if (msg.action === 'show sidebar'){
-            var sidebar = getSidebar();
+            sidebar = getSidebar();
             if (sidebar){
                 updateSidebar(sidebar, msg.about);
                 showSidebar(sidebar);
@@ -82,7 +88,16 @@ chrome.extension.onConnect.addListener(function(port){
                 createSidebar(function(sidebar){
                     updateSidebar(sidebar, msg.about);
                     showSidebar(sidebar);
+                    sidebar.onload = function(){
+                        backgroundPort.postMessage({injectSidebarJS: true});
+                    };
                 });
+            }
+        }
+        else if (msg.action === 'hide sidebar'){
+            sidebar = getSidebar();
+            if (sidebar){
+                hideSidebar(sidebar);
             }
         }
         else {

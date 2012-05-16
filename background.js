@@ -231,9 +231,9 @@ var removeSelectionNotifications = function(){
 };
 
 
-// Listen for incoming messages from the content script with events
-// (link mouseover, link mouseout, selection set/cleared), and
-// update the context menu.
+// Listen for incoming messages from the tab content script or the sidebar
+// iframe script with events (link mouseover, link mouseout, selection
+// set/cleared, etc).
 
 chrome.extension.onConnect.addListener(function(port){
     if (port.name === 'content-script'){
@@ -309,10 +309,40 @@ chrome.extension.onConnect.addListener(function(port){
                     addContextMenuItem(msg.text, 'link');
                 }
             }
+            else if (msg.injectSidebarJS){
+                chrome.tabs.getSelected(null, function(tab){
+                    chrome.tabs.executeScript(tab.id, {
+                        allFrames: true,
+                        file: 'sidebar-inject.js'
+                    });
+                });
+            }
             else {
                 console.log('Unrecognized message sent by content script:');
                 console.log(msg);
             }
+        });
+    }
+    else if (port.name === 'sidebar-iframe'){
+        // Process messages coming from the sidebar iframe.
+        port.onMessage.addListener(function(msg){
+            chrome.tabs.getSelected(null, function(tab){
+                var sidebarPort = chrome.tabs.connect(tab.id, {name: 'sidebar'});
+                if (msg.action === 'hide sidebar'){
+                    sidebarPort.postMessage({
+                        action: 'hide sidebar'
+                    });
+                }
+                else if (msg.action === 'open'){
+                    chrome.tabs.update(tab.id, {
+                        url: absoluteHref(msg.linkURL, msg.docURL)
+                    });
+                }
+                else {
+                    console.log('Unrecognized message sent by sidebar iframe:');
+                    console.log(msg);
+                }
+            });
         });
     }
     else {
