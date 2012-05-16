@@ -217,16 +217,16 @@ var removeContextMenuItemsByContext = function(context){
     }
 };
 
-var createSelectionNotifications = function(about){
-    displayNotifications({
+var createSelectionNotification = function(about){
+    displayNotification({
         about: about,
         tabId: 'selection',
         updateBadge: false
     });
 };
 
-var removeSelectionNotifications = function(){
-    deleteAllNotificationsForTab('selection');
+var removeSelectionNotification = function(){
+    deleteNotificationForTab('selection');
     tabThatCreatedCurrentSelection = null;
 };
 
@@ -246,7 +246,7 @@ chrome.extension.onConnect.addListener(function(port){
                         removeContextMenuItemsByContext('selection');
                         addContextMenuItem(currentSelection, 'selection');
                         if (currentSelection.length < maxSelectionLengthToLookup){
-                            createSelectionNotifications(currentSelection);
+                            createSelectionNotification(currentSelection);
                         }
                     });
                 }
@@ -255,7 +255,7 @@ chrome.extension.onConnect.addListener(function(port){
                 if (currentSelection !== null){
                     currentSelection = null;
                     removeContextMenuItemsByContext('selection');
-                    removeSelectionNotifications();
+                    removeSelectionNotification();
                 }
             }
             else if (msg.mouseout){
@@ -587,18 +587,14 @@ var deleteValuesCacheForTab = function(tabId){
 var notifications = {};
 var timeouts = {};
 
-var createNotification = function(tabId, type){
+var createNotification = function(tabId){
     if (window.webkitNotifications){
-        if (! notifications.hasOwnProperty(tabId)){
-            notifications[tabId] = {};
-        }
-
-        if (! notifications[tabId].hasOwnProperty(type)){
+        if (! notifications[tabId]){
             var notification = window.webkitNotifications.createHTMLNotification('notification.html');
             notification.show();
-            notifications[tabId][type] = notification;
+            notifications[tabId] = notification;
             notification.onclose = function(){
-                deleteNotificationForTab(tabId, type);
+                deleteNotificationForTab(tabId);
             };
         }
     }
@@ -607,43 +603,29 @@ var createNotification = function(tabId, type){
     }
 };
 
-var deleteAllNotificationsForTab = function(tabId){
+var deleteNotificationForTab = function(tabId){
     if (notifications[tabId] !== undefined){
-        for (type in notifications[tabId]){
-            if (notifications[tabId].hasOwnProperty(type)){
-                deleteNotificationForTab(tabId, type);
-            }
+        if (timeouts[tabId] !== undefined){
+            clearTimeout(timeouts[tabId]);
+            delete timeouts[tabId];
         }
+        notifications[tabId].cancel();
+        delete notifications[tabId];
     }
 };
 
-var deleteNotificationForTab = function(tabId, type){
-    if (notifications[tabId] !== undefined){
-        if (notifications[tabId][type] !== undefined){
-            if (timeouts[tabId] !== undefined){
-                if (timeouts[tabId][type] !== undefined){
-                    clearTimeout(timeouts[tabId][type]);
-                    delete timeouts[tabId][type];
-                }
-            }
-            notifications[tabId][type].cancel();
-            delete notifications[tabId][type];
-        }
-    }
-};
-
-var displayNotifications = function(options){
+var displayNotification = function(options){
     var tabId = options.tabId;
     var about = options.about;
     var updateBadge = options.updateBadge;
 
     deleteValuesCacheForTab(tabId);
-    deleteAllNotificationsForTab(tabId);
+    deleteNotificationForTab(tabId);
     valuesCache[tabId] = {
         tagPaths: {}, // Will be filled in in onSuccess, below.
         tagValueHandler: makeTagValueHandler({
             about: about,
-            session: fluidinfoAPI || anonFluidinfoAPI
+            session: anonFluidinfoAPI
         })
     };
 
@@ -652,104 +634,6 @@ var displayNotifications = function(options){
         if (result.status != 404){
             console.log('Got error from Fluidinfo fetching tags for about ' + about);
             console.log(result);
-        }
-    };
-
-    var showUsersTags = function(result){
-        // If the user isn't logged in, do nothing.
-        if (!fluidinfoAPI){
-            return;
-        }
-        var tagPaths = result.data.tagPaths;
-        var wantedTags = [];
-        for (var i = 0; i < tagPaths.length; i++){
-            var tagPath = tagPaths[i];
-            valuesCache[tabId].tagPaths[tagPath] = true;
-            var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-            if (namespace === fluidinfoUsername){
-                // This is one of the user's tags.
-                wantedTags.push(tagPath);
-            }
-        }
-
-        if (wantedTags.length > 0){
-            valuesCache[tabId].tagValueHandler.get({
-                onError: function(response){
-                    console.log('Fluidinfo API call failed:');
-                    console.log(response);
-                },
-                onSuccess: function(){
-                    if (updateBadge){
-                        chrome.browserAction.setBadgeText({
-                            tabId: tabId,
-                            text: '' + wantedTags.length
-                        });
-                        chrome.browserAction.setBadgeBackgroundColor({
-                            color: [255, 0, 0, 255],
-                            tabId: tabId
-                        });
-                    }
-
-                    createNotification(tabId, 'user');
-
-                    var timeout = settings.get('notificationTimeout');
-                    if (timeout){
-                        var hide = function(){
-                            deleteNotificationForTab(tabId, 'user');
-                        };
-                        if (! timeouts.hasOwnProperty(tabId)){
-                            timeouts[tabId] = {};
-                        }
-                        timeouts[tabId].user = setTimeout(hide, timeout * 1000);
-                    }
-
-                    var populate = function(){
-                        var found = false;
-                        var info = tabId + '_user';
-                        chrome.extension.getViews({type: 'notification'}).forEach(function(win){
-                            // Populate any new notification window (win._fluidinfo_info undefined)
-                            // or re-populate if win._fluidinfo_info is the current tabId (in which
-                            // case we are processing a reload).
-                            if (!found &&
-                                (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
-                                if (win.populate){
-                                    win._fluidinfo_info = info;
-                                    win.populate({
-                                        about: about,
-                                        dropNamespaces: true,
-                                        loggedIn: true,
-                                        tabId: (tabId === 'selection' ? tabThatCreatedCurrentSelection : tabId),
-                                        tagValueHandler: valuesCache[tabId].tagValueHandler,
-                                        title: 'Your info for',
-                                        wantedTags: wantedTags
-                                    });
-                                    found = true;
-                                }
-                            }
-                        });
-
-                        if (!found){
-                            setTimeout(populate, 50);
-                        }
-                    };
-
-                    setTimeout(populate, 50);
-                },
-                tags: wantedTags
-            });
-        }
-        else {
-            // The user has no tags on the object for the current about value.
-            if (updateBadge){
-                chrome.browserAction.setBadgeText({
-                    tabId: tabId,
-                    text: ''
-                });
-                chrome.browserAction.setBadgeBackgroundColor({
-                    color: [0, 0, 0, 255],
-                    tabId: tabId
-                });
-            }
         }
     };
 
@@ -790,20 +674,30 @@ var displayNotifications = function(options){
                 return;
             }
 
-            // Look at the tags on the object and get the ones that have namespaces
-            // that correspond to things the user is following.
+            // Look at the tags on the object and get the ones that have
+            // namespaces that correspond to things the user is following
+            // and that we know how to display in a custom way.
             var tagPaths = result.data.tagPaths;
-            var wantedTags = [];
+            var neededTags = [];
+            var knownPrefixes = [];
+            var seenPrefixes = {};
             for (i = 0; i < tagPaths.length; i++){
                 var tagPath = tagPaths[i];
                 var namespace = tagPath.slice(0, tagPath.indexOf('/'));
-                if (followees.hasOwnProperty(namespace)){
-                    // This is one of the user's followees tags.
-                    wantedTags.push(tagPath);
+                var namespaceWithSlash = namespace + '/';
+                if (followees.hasOwnProperty(namespace) &&
+                    customDisplayPrefixes.hasOwnProperty(namespaceWithSlash)){
+                    // This is one of the anon user's followees tags, and we have a custom
+                    // display function for it.
+                    neededTags.push(tagPath);
+                    if (!seenPrefixes.hasOwnProperty(namespaceWithSlash)){
+                        knownPrefixes.push(namespaceWithSlash);
+                        seenPrefixes[namespaceWithSlash] = true;
+                    }
                 }
             }
 
-            if (wantedTags.length > 0){
+            if (knownPrefixes.length > 0 && neededTags.length > 0){
                 valuesCache[tabId].tagValueHandler.get({
                     onError: function(response){
                         console.log('Fluidinfo API call failed:');
@@ -821,7 +715,7 @@ var displayNotifications = function(options){
                             if (! timeouts.hasOwnProperty(tabId)){
                                 timeouts[tabId] = {};
                             }
-                            timeouts[tabId].followees = setTimeout(hide, timeout * 1000);
+                            timeouts[tabId] = setTimeout(hide, timeout * 1000);
                         }
 
                         var populate = function(){
@@ -835,25 +729,11 @@ var displayNotifications = function(options){
                                     (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
                                     if (win.populate){
                                         win._fluidinfo_info = info;
-                                        var loggedIn,
-                                            title;
-                                        if (fluidinfoAPI){
-                                            loggedIn = true;
-                                            title = 'People you follow have added info to';
-                                        }
-                                        else {
-                                            loggedIn = false;
-                                            title = 'A sample of info for';
-                                        }
-
                                         win.populate({
                                             about: about,
-                                            dropNamespaces: false,
-                                            loggedIn: loggedIn,
+                                            knownPrefixes: knownPrefixes,
                                             tabId: (tabId === 'selection' ? tabThatCreatedCurrentSelection : tabId),
-                                            tagValueHandler: valuesCache[tabId].tagValueHandler,
-                                            title: title,
-                                            wantedTags: wantedTags
+                                            tagValueHandler: valuesCache[tabId].tagValueHandler
                                         });
                                         found = true;
                                     }
@@ -867,33 +747,21 @@ var displayNotifications = function(options){
 
                         setTimeout(populate, 50);
                     },
-                    tags: wantedTags
+                    tags: neededTags
                 });
             }
         };
 
-        // Get the about values from the objects the user follows (or the
-        // objects the anon user follows if the user is not logged in).
-        var api,
-            followsTag;
-        if (fluidinfoAPI){
-            api = fluidinfoAPI;
-            followsTag = fluidinfoUsername + '/follows';
-        }
-        else {
-            api = anonFluidinfoAPI;
-            followsTag = 'anon/follows';
-        }
-        api.query({
+        // Get the about values from the objects the anon user follows.
+        anonFluidinfoAPI.query({
             select: ['fluiddb/about'],
-            where: ['has ' + followsTag ],
+            where: ['has anon/follows'],
             onError: onError,
             onSuccess: onSuccess
         });
     };
 
     var onSuccess = function(result){
-        showUsersTags(result);
         showFolloweeTags(result);
     };
 
@@ -910,15 +778,15 @@ var displayNotifications = function(options){
 
 chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
     deleteValuesCacheForTab(tabId);
-    deleteAllNotificationsForTab(tabId);
+    deleteNotificationForTab(tabId);
     if (tabId === tabThatCreatedCurrentSelection){
-        removeSelectionNotifications();
+        removeSelectionNotification();
     }
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     if (changeInfo.status === 'loading'){
-        displayNotifications({
+        displayNotification({
             about: tab.url,
             tabId: tabId,
             updateBadge: true
