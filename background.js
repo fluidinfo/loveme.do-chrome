@@ -159,6 +159,10 @@ var createSelectionNotification = function(about){
 
 var removeSelectionNotification = function(){
     deleteNotificationForTab('selection');
+    var port = chrome.tabs.connect(tabThatCreatedCurrentSelection, {name: 'sidebar'});
+    port.postMessage({
+        action: 'hide sidebar'
+    });
     tabThatCreatedCurrentSelection = null;
 };
 
@@ -245,7 +249,7 @@ chrome.extension.onConnect.addListener(function(port){
                 chrome.tabs.getSelected(null, function(tab){
                     chrome.tabs.executeScript(tab.id, {
                         allFrames: true,
-                        file: 'sidebar-inject.js'
+                        file: 'iframe.js'
                     });
                 });
             }
@@ -577,7 +581,7 @@ chrome.tabs.query({}, function(tabs){
 chrome.browserAction.onClicked.addListener(function(tab){
     var port = chrome.tabs.connect(tab.id, {name: 'sidebar'});
     port.postMessage({
-        about: tab.url,
-        action: 'show sidebar'
+        about: (currentSelection === null) ? tab.url : currentSelection,
+        action: 'toggle sidebar'
     });
 });
