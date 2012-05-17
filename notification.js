@@ -14,18 +14,26 @@ var populate = function(options){
     var truncatedAbout = valueUtils.truncateAbout(about, 35);
     var url = 'http://fluidinfo.com/about/#!/' + encodeURIComponent(about);
     
-    // For now, show the sidebar whenever there's something to show.
-    var port = chrome.tabs.connect(options.tabId, {name: 'sidebar'});
-    port.postMessage({
-        about: options.about,
-        action: 'show sidebar'
-    });
-
     document.getElementById('fi_url').innerHTML = Mustache.render(
         '<a href="{{url}}" target="_blank">{{truncatedAbout}}</a>', {
             truncatedAbout: truncatedAbout,
             url: url
         }
+    );
+
+    document.getElementById('fi_open_sidebar').addEventListener(
+        'click',
+        function(evt){
+            var port = chrome.tabs.connect(options.tabId, {name: 'sidebar'});
+            port.postMessage({
+                about: options.about,
+                action: 'show sidebar'
+            });
+            evt.preventDefault();
+            evt.stopPropagation();
+            return false;
+        },
+        false
     );
 
     // Add the HTML for each of the custom prefixes on the object.
