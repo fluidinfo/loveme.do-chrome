@@ -572,3 +572,12 @@ chrome.tabs.query({}, function(tabs){
         }
     }
 });
+
+// Set up the click listener on the extension icon.
+chrome.browserAction.onClicked.addListener(function(tab){
+    var port = chrome.tabs.connect(tab.id, {name: 'sidebar'});
+    port.postMessage({
+        about: tab.url,
+        action: 'show sidebar'
+    });
+});
