@@ -4,14 +4,12 @@
  * in the main tab code.
  */
 
-var close = document.getElementById('close');
+var close = document.getElementById('fluidinfo-sidebar-close');
 
 if (close){
     var port = chrome.extension.connect({
         name: 'sidebar-iframe'
     });
-    
-    close.style.display = 'inline';
 
     close.addEventListener(
         'click',
