@@ -6,17 +6,26 @@
  */
 var infomaniacHost = 'new.fluidinfo.com';
 
+var settings = null;
+
 var backgroundPort = chrome.extension.connect({
     name: 'content-script'
 });
 
-
 var hideSidebar = function(sidebar){
-    sidebar.style.display = 'none';
+    var options = {};
+    options[settings.sidebarSide] = -1 * settings.sidebarWidth;
+    $(sidebar).animate(options, 500, function(){
+        $(sidebar).css('display', 'none');
+    });
 };
 
 var showSidebar = function(sidebar){
-    sidebar.style.display = 'block';
+    var options = {};
+    options[settings.sidebarSide] = 0;
+    $(sidebar).css(settings.sidebarSide, '-' + settings.sidebarWidth + 'px')
+        .css('display', 'block')
+        .animate(options, 500);
 };
 
 var getSidebar = function(){
@@ -25,12 +34,16 @@ var getSidebar = function(){
 
 var updateSidebar = function(sidebar, about){
     sidebar.src = 'http://' + infomaniacHost + '/infomaniac/' + encodeURIComponent(about);
+    sidebar.onload = function(){
+        backgroundPort.postMessage({injectSidebarJS: true});
+    };
 };
 
-var toggleSidebar = function(){
+var toggleSidebar = function(about){
     var sidebar = getSidebar();
     if (sidebar){
         if (sidebar.style.display === 'none'){
+            updateSidebar(sidebar, about);
             showSidebar(sidebar);
         }
         else {
@@ -41,7 +54,7 @@ var toggleSidebar = function(){
         // There is no sidebar. Create one showing the Fluidinfo object for
         // the current document url, and display it.
         createSidebar(function(sidebar){
-            updateSidebar(sidebar, document.location.toString());
+            updateSidebar(sidebar, about);
             showSidebar(sidebar);
         });
     }
@@ -54,7 +67,8 @@ var createSidebar = function(callback){
         // Get the current settings so we know what style & size to use.
         chrome.extension.sendRequest(
             {action: 'get-settings'},
-            function(settings){
+            function(result){
+                settings = result;
                 var sidebar = document.createElement('iframe');
                 sidebar.id = 'fi_sidebar';
                 sidebar.classList.add('fluidinfo_sidebar');
@@ -88,9 +102,6 @@ chrome.extension.onConnect.addListener(function(port){
                 createSidebar(function(sidebar){
                     updateSidebar(sidebar, msg.about);
                     showSidebar(sidebar);
-                    sidebar.onload = function(){
-                        backgroundPort.postMessage({injectSidebarJS: true});
-                    };
                 });
             }
         }
@@ -99,6 +110,9 @@ chrome.extension.onConnect.addListener(function(port){
             if (sidebar){
                 hideSidebar(sidebar);
             }
+        }
+        else if (msg.action === 'toggle sidebar'){
+            toggleSidebar(msg.about);
         }
         else {
             console.log('got unknown mesg from notification popup:');
@@ -110,11 +124,11 @@ chrome.extension.onConnect.addListener(function(port){
 // Allow toggling the display of the sidebar via Control-Shift-f
 shortcut.add('Ctrl+Shift+F', function(){
     console.log('Received Ctrl+Shift+F');
-    toggleSidebar();
+    toggleSidebar(document.location.toString());
 });
 
 // Allow toggling the display of the sidebar via Control-Shift-f
 shortcut.add('Ctrl+Shift+Z', function(){
     console.log('Received Ctrl+Shift+Z');
-    toggleSidebar();
+    toggleSidebar(document.location.toString());
 });
