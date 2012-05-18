@@ -32,10 +32,11 @@ var getSidebar = function(){
     return document.getElementById('fi_sidebar');
 };
 
-var updateSidebar = function(sidebar, about){
+var updateSidebar = function(sidebar, about, callback){
     sidebar.src = 'http://' + infomaniacHost + '/infomaniac/' + encodeURIComponent(about);
     sidebar.onload = function(){
         backgroundPort.postMessage({injectSidebarJS: true});
+        callback();
     };
 };
 
@@ -43,8 +44,9 @@ var toggleSidebar = function(about){
     var sidebar = getSidebar();
     if (sidebar){
         if (sidebar.style.display === 'none'){
-            updateSidebar(sidebar, about);
-            showSidebar(sidebar);
+            updateSidebar(sidebar, about, function(){
+                showSidebar(sidebar);
+            });
         }
         else {
             hideSidebar(sidebar);
@@ -54,8 +56,9 @@ var toggleSidebar = function(about){
         // There is no sidebar. Create one showing the Fluidinfo object for
         // the current document url, and display it.
         createSidebar(function(sidebar){
-            updateSidebar(sidebar, about);
-            showSidebar(sidebar);
+            updateSidebar(sidebar, about, function(){
+                showSidebar(sidebar);
+            });
         });
     }
 };
@@ -95,13 +98,15 @@ chrome.extension.onConnect.addListener(function(port){
         if (msg.action === 'show sidebar'){
             sidebar = getSidebar();
             if (sidebar){
-                updateSidebar(sidebar, msg.about);
-                showSidebar(sidebar);
+                updateSidebar(sidebar, msg.about, function(){
+                    showSidebar(sidebar);
+                });
             }
             else {
                 createSidebar(function(sidebar){
-                    updateSidebar(sidebar, msg.about);
-                    showSidebar(sidebar);
+                    updateSidebar(sidebar, msg.about, function(){
+                        showSidebar(sidebar);
+                    });
                 });
             }
         }
