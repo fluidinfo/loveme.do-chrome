@@ -98,6 +98,7 @@ chrome.extension.onConnect.addListener(function(port){
         if (msg.action === 'show sidebar'){
             sidebar = getSidebar();
             if (sidebar){
+<<<<<<< HEAD
                 updateSidebar(sidebar, msg.about, function(){
                     showSidebar(sidebar);
                 });
@@ -107,6 +108,15 @@ chrome.extension.onConnect.addListener(function(port){
                     updateSidebar(sidebar, msg.about, function(){
                         showSidebar(sidebar);
                     });
+=======
+                updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about));
+                showSidebar(sidebar);
+            }
+            else {
+                createSidebar(function(sidebar){
+                    updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about));
+                    showSidebar(sidebar);
+>>>>>>> master
                 });
             }
         }
@@ -117,7 +127,7 @@ chrome.extension.onConnect.addListener(function(port){
             }
         }
         else if (msg.action === 'toggle sidebar'){
-            toggleSidebar(msg.about);
+            toggleSidebar(valueUtils.lowercaseAboutValue(msg.about));
         }
         else {
             console.log('got unknown mesg from notification popup:');
