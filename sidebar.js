@@ -98,25 +98,15 @@ chrome.extension.onConnect.addListener(function(port){
         if (msg.action === 'show sidebar'){
             sidebar = getSidebar();
             if (sidebar){
-<<<<<<< HEAD
-                updateSidebar(sidebar, msg.about, function(){
+                updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about), function(){
                     showSidebar(sidebar);
                 });
             }
             else {
                 createSidebar(function(sidebar){
-                    updateSidebar(sidebar, msg.about, function(){
+                    updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about), function(){
                         showSidebar(sidebar);
                     });
-=======
-                updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about));
-                showSidebar(sidebar);
-            }
-            else {
-                createSidebar(function(sidebar){
-                    updateSidebar(sidebar, valueUtils.lowercaseAboutValue(msg.about));
-                    showSidebar(sidebar);
->>>>>>> master
                 });
             }
         }
