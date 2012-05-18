@@ -152,8 +152,7 @@ var removeContextMenuItemsByContext = function(context){
 var createSelectionNotification = function(about){
     displayNotification({
         about: about,
-        tabId: 'selection',
-        updateBadge: false
+        tabId: 'selection'
     });
 };
 
@@ -365,7 +364,6 @@ var deleteNotificationForTab = function(tabId){
 var displayNotification = function(options){
     var tabId = options.tabId;
     var about = options.about;
-    var updateBadge = options.updateBadge;
 
     deleteValuesCacheForTab(tabId);
     deleteNotificationForTab(tabId);
@@ -529,8 +527,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     if (changeInfo.status === 'loading'){
         displayNotification({
             about: tab.url,
-            tabId: tabId,
-            updateBadge: true
+            tabId: tabId
         });
         // Update the context menu to add the current page's domain if
         // the tab that's loading is the one that's currently being viewed.
