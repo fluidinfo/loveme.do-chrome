@@ -53,13 +53,12 @@ function makeURL(about, info){
      * Generate an object browser URL given an about value and an info
      * object containing information about the user event.
      */
+    var url = base + encodeURIComponent(about);
     var fragment = info ? refererFragment(info) : '';
-    if (fragment === ''){
-        return base + '#!/' + encodeURIComponent(about);
+    if (fragment !== ''){
+        url = url + '?' + fragment;
     }
-    else {
-        return base + '?' + fragment + '#!/' + encodeURIComponent(about);
-    }
+    return url;
 }
 
 function refererFragment(info){
