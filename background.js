@@ -568,33 +568,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
             about: tab.url,
             tabId: tabId
         });
-        // Update the context menu to add the current page's domain if
-        // the tab that's loading is the one that's currently being viewed.
-        // I.e., ignore tabs which are auto-reloading or loading at startup
-        // when the browser is restoring state.
-        chrome.tabs.getCurrent(function(currentTab){
-            // Note that currentTab is sometimes undefined.
-            if (currentTab && currentTab.id === tabId){
-                removeContextMenuItemsByContext('page');
-                if (! valueUtils.isChromeURL(tab.url)){
-                    var domain = valueUtils.extractDomainFromURL(tab.url);
-                    addContextMenuItem(domain, 'page');
-                }
-            }
-        });
     }
 });
-
-chrome.tabs.onActiveChanged.addListener(function(tabId, selectInfo){
-    removeContextMenuItemsByContext('page');
-    chrome.tabs.get(tabId, function(tab){
-        if (! valueUtils.isChromeURL(tab.url)){
-            var domain = valueUtils.extractDomainFromURL(tab.url);
-            addContextMenuItem(domain, 'page');
-        }
-    });
-});
-
 
 // Inject our content scripts into existing tabs, skipping chrome's own
 // tabs (trying to inject into them gives a console error message).
