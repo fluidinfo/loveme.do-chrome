@@ -1,6 +1,6 @@
 {
   "name": "Fluidinfo",
-  "version": "1.5.57",
+  "version": "1.5.60",
   "description": "Add your info to URLs, and jump to Fluidinfo pages for them and for selected text.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
@@ -13,15 +13,15 @@
     "unlimitedStorage"
   ],
   "icons" : {
-    "16" : "fi_16.png",
-    "19" : "fi_19.png",
-    "32" : "fi_32.png",
-    "48" : "fi_48.png",
-    "64" : "fi_64.png",
-    "128" : "fi_128.png"
+    "16" : "images/fi-16.png",
+    "19" : "images/fi-19.png",
+    "32" : "images/fi-32.png",
+    "48" : "images/fi-48.png",
+    "64" : "images/fi-64.png",
+    "128" : "images/fi-128.png"
   },
   "browser_action": {
-    "default_icon": "fi_19.png",
+    "default_icon": "images/fi-19.png",
     "default_title": "Fluidinfo"
   },
   "content_scripts": [

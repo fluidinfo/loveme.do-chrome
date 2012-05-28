@@ -45,7 +45,7 @@ this.i18n = {
     'add description': {
         'en':
             '<p> ' +
-            'Click the <img src="../fi_16.png" height="14" width="14"> extension icon to add info to the ' +
+            'Click the <img src="../images/fi-16.png" height="14" width="14"> extension icon to add info to the ' +
             'current URL.' +
             '</p>'
     },

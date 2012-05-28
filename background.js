@@ -1,5 +1,4 @@
 var base = 'http://fluidinfo.com/about/';
-var defaultAbout = '@fluidinfo';
 var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
 
@@ -22,83 +21,14 @@ var settings = new Store('settings', {
 var anonFluidinfoAPI = fluidinfo();
 
 
-// -----------------  Omnibox -----------------
-
-chrome.omnibox.setDefaultSuggestion({
-    description: 'Jump to "%s" in Fluidinfo'
-});
-
-chrome.omnibox.onInputEntered.addListener(function(text){
-    chrome.tabs.getSelected(null, function(tab){
-        chrome.tabs.update(tab.id, {
-            url: makeURL(text)
-        });
-    });
-});
-
-// ----------------- Utility functions for context menus -----------------
-
-function openNewTab(about, info, tab){
-    /*
-     * Create a new tab with the object browser looking at the given about value.
-     */
-    chrome.tabs.create({
-        url: makeURL(about === undefined ? defaultAbout : about, info),
-        index: tab.index + 1
-    });
-}
-
-function openInSidebar(about, info, tab){
-    /*
-     * Open the sidebar, looking at the given about value.
-     */
-    var port = chrome.tabs.connect(tab.id, {name: 'sidebar'});
-    port.postMessage({
-        about: about,
-        action: 'show sidebar'
-    });
-}
 
 function makeURL(about, info){
     /*
      * Generate an object browser URL given an about value and an info
      * object containing information about the user event.
      */
-    var url = base + encodeURIComponent(about);
-    var fragment = info ? refererFragment(info) : '';
-    if (fragment !== ''){
-        url = url + '?' + fragment;
-    }
-    return url;
+    return base + encodeURIComponent(about);
 }
-
-function refererFragment(info){
-    /*
-     * A utility function to produce a url=xxx refering page URL fragment for a
-     * request to the object browser.
-     */
-    return info.pageUrl ? 'url=' + encodeURIComponent(info.pageUrl) : '';
-}
-
-// --------------------------- Page --------------------------
-
-chrome.contextMenus.create({
-    'title' : 'This page in the sidebar',
-    'type' : 'normal',
-    'contexts' : ['page'],
-    'onclick' : function(info, tab){
-        openInSidebar(info.pageUrl, info, tab);
-    }
-});
-
-chrome.contextMenus.create({
-    'title' : 'This page on fluidinfo.com',
-    'type' : 'normal',
-    'contexts' : ['page'],
-    'onclick' : function(info, tab){
-        openNewTab(info.pageUrl, info, tab);
-    }
-});
 
 
 var absoluteHref = function(linkURL, docURL){
@@ -130,54 +60,6 @@ var absoluteHref = function(linkURL, docURL){
 };
 
 
-// ---------------------- Link text context menu items ------------
-
-// contextMenuItems has attributes that are the text of current
-// context menu items. Its values are objects with two attributes,
-// 'context' (either 'link' or 'selection') and 'menuItem',
-// the menu item index returned by chrome.contextMenus.create.
-var contextMenuItems = {};
-
-var addContextMenuItem = function(text, context){
-    // Add (possibly truncated) 'text' to the context menu, if not already present.
-    text = (text.length < 50 ? text : text.slice(0, 47) + '...').replace(/\n+/g, ' ');
-
-    if (typeof contextMenuItems[text] === 'undefined'){
-        var sidebarMenuItem = chrome.contextMenus.create({
-            'title' : text + ' in the sidebar',
-            'type' : 'normal',
-            'contexts' : [context],
-            'onclick' : function(info, tab){
-                openInSidebar(text, info, tab);
-            }
-        });
-        var gotoMenuItem = chrome.contextMenus.create({
-            'title' : text + ' on fluidinfo.com',
-            'type' : 'normal',
-            'contexts' : [context],
-            'onclick' : function(info, tab){
-                openNewTab(text, info, tab);
-            }
-        });
-        contextMenuItems[text] = {
-            context: context,
-            gotoMenuItem: gotoMenuItem,
-            sidebarMenuItem: sidebarMenuItem
-        };
-    }
-};
-
-var removeContextMenuItemsByContext = function(context){
-    var text;
-    for (text in contextMenuItems){
-        if (typeof contextMenuItems[text] !== 'undefined' &&
-            contextMenuItems[text].context === context){
-            chrome.contextMenus.remove(contextMenuItems[text].gotoMenuItem);
-            chrome.contextMenus.remove(contextMenuItems[text].sidebarMenuItem);
-            delete contextMenuItems[text];
-        }
-    }
-};
 
 var createSelectionNotification = function(about){
     displayNotification({
@@ -313,27 +195,6 @@ chrome.extension.onConnect.addListener(function(port){
     else {
         console.log('Got connection on port with unknown name.');
         console.log(port);
-    }
-});
-
-
-// --------------------------- Image --------------------------
-
-chrome.contextMenus.create({
-    'title' : 'This image in the sidebar',
-    'type' : 'normal',
-    'contexts' : ['image'],
-    'onclick' : function(info, tab){
-        openInSidebar(info.srcUrl, info, tab);
-    }
-});
-
-chrome.contextMenus.create({
-    'title' : 'This image on fluidinfo.com',
-    'type' : 'normal',
-    'contexts' : ['image'],
-    'onclick' : function(info, tab){
-        openNewTab(info.srcUrl, info, tab);
     }
 });
 
