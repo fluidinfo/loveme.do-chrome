@@ -15,7 +15,7 @@ var followeeRegex = /^@?([\w\.]+)$/;
 
 var settings = new Store('settings', {
     notificationTimeout: 30,
-    sidebarSide: 'left',
+    sidebarSide: 'right',
     sidebarWidth: 300
 });
 
