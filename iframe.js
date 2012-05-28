@@ -27,17 +27,26 @@ if (close){
         function(evt){
             // Intercept click events on links and send a message to the
             // background page so they can be displayed in the current tab.
+            var url = null;
             if (evt.target.nodeName === 'A'){
+                url = evt.target.getAttribute('href');
+            }
+            else if (evt.target.nodeName === 'IMG'){
+                url = evt.target.parentNode.getAttribute('href');
+            }
+            if (url){
                 port.postMessage({
                     action: 'open',
                     docURL: document.location.toString(),
-                    linkURL: evt.target.getAttribute('href')
+                    linkURL: url
                 });
                 evt.preventDefault();
                 evt.stopPropagation();
                 return false;
             }
-            return true;
+            else {
+                return true;
+            }
         },
         true
     );
