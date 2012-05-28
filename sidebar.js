@@ -4,7 +4,7 @@
  * testing, 'new.fluidinfo.com' for the staging server, and 'fluidinfo.com'
  * for extension deployments to the Chrome store.
  */
-var infomaniacHost = 'new.fluidinfo.com';
+var infomaniacHost = 'fluidinfo.com';
 
 var settings = null;
 
