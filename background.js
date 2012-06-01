@@ -1,10 +1,16 @@
-var base = 'http://fluidinfo.com/about/';
+// Set fluidDBHost to 'localhost:9000' if testing against a local FluidDB.
+var fluidDBHost = 'fluiddb.fluidinfo.com';
+
 var twitterUserURLRegex = new RegExp('^https?://twitter.com/#!/(\\w+)$');
 var linkRegex = /^\w+:\/\//;
 
 var currentSelection = null;
 var tabThatCreatedCurrentSelection = null;
 var maxSelectionLengthToLookup = 200;
+
+// Tabs that were created as a part of the OAuth login process and which
+// are candidates for auto-deletion (when OAuth authorization is granted).
+var oauthAutoCloseTabs = {};
 
 // Things we consider as possibly being an about value that corresponds to
 // something that's being followed, e.g., '@username' or 'wordnik.com'.
@@ -18,18 +24,7 @@ var settings = new Store('settings', {
     sidebarWidth: 300
 });
 
-var anonFluidinfoAPI = fluidinfo();
-
-
-
-function makeURL(about, info){
-    /*
-     * Generate an object browser URL given an about value and an info
-     * object containing information about the user event.
-     */
-    return base + encodeURIComponent(about);
-}
-
+var anonFluidinfoAPI = fluidinfo({instance: 'https://' + fluidDBHost + '/'});
 
 var absoluteHref = function(linkURL, docURL){
     /*
@@ -178,6 +173,16 @@ chrome.extension.onConnect.addListener(function(port){
                 if (msg.action === 'hide sidebar'){
                     sidebarPort.postMessage({
                         action: 'hide sidebar'
+                    });
+                }
+                else if (msg.action === 'oauth login'){
+                    chrome.tabs.create({
+                        index: tab.index + 1,
+                        openerTabId: tab.id,
+                        url: 'http://' + fluidinfoHost + '/login/fluidinfo/'
+                    }, function(createdTab){
+                        // Mark the tab as something we want to close automatically.
+                        oauthAutoCloseTabs[createdTab.id] = port;
                     });
                 }
                 else if (msg.action === 'open'){
@@ -425,10 +430,47 @@ chrome.tabs.onRemoved.addListener(function(tabId, changeInfo, tab){
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
     if (changeInfo.status === 'loading'){
-        displayNotification({
-            about: tab.url,
-            tabId: tabId
-        });
+        if (oauthAutoCloseTabs.hasOwnProperty(tabId)){
+            // This tab is a candidate for automatic closing after successful
+            // OAuth login.
+            var aboutURLPrefix = 'http://' + fluidinfoHost + '/about/';
+            if (tab.url.slice(0, 39) === 'https://api.twitter.com/oauth/authorize'){
+                // We're in the intermediate state, the fate of the OAuth login
+                // attempt is still unknown. Do nothing.
+            }
+            else if (tab.url.slice(0, aboutURLPrefix.length) === aboutURLPrefix){
+                // We're loading a valid Fluidinfo URL, so the OAuth
+                // approval was granted. Remove the OAuth tab. Tell the tab
+                // that made it to reload its sidebar now that login has
+                // succeeded, and make it the active tab so the user is
+                // returned to what they were originally looking at.
+                var port = oauthAutoCloseTabs[tabId];
+                port.postMessage({action: 'reload'});
+                chrome.tabs.remove(tabId);
+                chrome.tabs.update(tab.openerTabId, {active: true});
+                delete oauthAutoCloseTabs[tabId];
+            }
+            else {
+                // The tab has gone on to do something else (i.e., it is no
+                // longer doing oauth stuff). Unmark it as a candidate for
+                // automatic deletion.
+                delete oauthAutoCloseTabs[tabId];
+            }
+        }
+        else {
+            displayNotification({
+                about: tab.url,
+                tabId: tabId
+            });
+        }
+    }
+});
+
+chrome.tabs.onRemoved.addListener(function(tabId, removeInfo){
+    // An OAuth login tab that's being closed should no longer be marked
+    // for auto deletion.
+    if (oauthAutoCloseTabs.hasOwnProperty(tabId)){
+        delete oauthAutoCloseTabs[tabId];
     }
 });
 
