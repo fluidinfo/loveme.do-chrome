@@ -1,11 +1,3 @@
-/*
- * infomaniacHost is the hostname (possibly with a colon & port) from which
- * to load sidebar content in an iframe. Use 'localhost:8000' for local
- * testing, 'new.fluidinfo.com' for the staging server, and 'fluidinfo.com'
- * for extension deployments to the Chrome store.
- */
-var infomaniacHost = 'new.fluidinfo.com';
-
 var settings = null;
 
 var backgroundPort = chrome.extension.connect({
@@ -33,7 +25,7 @@ var getSidebar = function(){
 };
 
 var updateSidebar = function(sidebar, about, callback){
-    sidebar.src = 'http://' + infomaniacHost + '/infomaniac/' + encodeURIComponent(about);
+    sidebar.src = 'http://' + fluidinfoHost + '/infomaniac/' + encodeURIComponent(about);
     sidebar.onload = function(){
         backgroundPort.postMessage({injectSidebarJS: true});
         callback();
