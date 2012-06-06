@@ -8,4 +8,4 @@
  * staging server, and 'fluidinfo.com' when deploying to the Chrome store.
  */
 
-var fluidinfoHost = 'new.fluidinfo.com';
+var fluidinfoHost = 'beta.fluidinfo.com';

@@ -433,12 +433,12 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         if (oauthAutoCloseTabs.hasOwnProperty(tabId)){
             // This tab is a candidate for automatic closing after successful
             // OAuth login.
-            var aboutURLPrefix = 'http://' + fluidinfoHost + '/about/';
+            var dashboardURLPrefix = 'http://' + fluidinfoHost + '/dashboard/';
             if (tab.url.slice(0, 39) === 'https://api.twitter.com/oauth/authorize'){
                 // We're in the intermediate state, the fate of the OAuth login
                 // attempt is still unknown. Do nothing.
             }
-            else if (tab.url.slice(0, aboutURLPrefix.length) === aboutURLPrefix){
+            else if (tab.url.slice(0, dashboardURLPrefix.length) === dashboardURLPrefix){
                 // We're loading a valid Fluidinfo URL, so the OAuth
                 // approval was granted. Remove the OAuth tab. Tell the tab
                 // that made it to reload its sidebar now that login has
