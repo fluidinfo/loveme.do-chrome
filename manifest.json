@@ -1,7 +1,7 @@
 {
   "name": "Fluidinfo",
-  "version": "1.5.60",
-  "description": "Add your info to URLs, and jump to Fluidinfo pages for them and for selected text.",
+  "version": "1.5.101",
+  "description": "Talk about the page you're looking at or the text you have selected in a sidebar.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
   "options_page": "fancy-settings/settings.html",
@@ -27,7 +27,7 @@
   "content_scripts": [
     {
       "css": ["sidebar.css"],
-      "js": ["shortcut.js", "jquery-1.7.1.min.js", "values.js", "sidebar.js"],
+      "js": ["shortcut.js", "jquery-1.7.1.min.js", "global.js", "values.js", "sidebar.js"],
       "matches": ["<all_urls>"],
       "run_at": "document_start"
     },
