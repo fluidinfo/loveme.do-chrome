@@ -57,8 +57,8 @@ function openNewTab(about, info, tab){
      * Create a new tab with the object browser looking at the given about value.
      */
     chrome.tabs.create({
-        url: makeURL(about, info),
-        index: tab.index + 1
+        index: tab.index + 1,
+        url: 'http://' + fluidinfoHost + '/about/' + encodeURIComponent(about)
     });
 }
 
