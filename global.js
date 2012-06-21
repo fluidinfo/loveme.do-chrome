@@ -4,8 +4,9 @@
  * from, and where we'll send users to when they want to see something on
  * our site.
  * 
- * Use 'localhost:8000' for local testing, 'new.fluidinfo.com' for the
- * staging server, and 'fluidinfo.com' when deploying to the Chrome store.
+ * Use 'localhost:8000' for local testing, 'new.fluidinfo.com' or
+ * 'beta.fluidinfo.com' for a staging server, and 'fluidinfo.com' when
+ * deploying to the Chrome store.
  */
 
-var fluidinfoHost = 'beta.fluidinfo.com';
+var fluidinfoHost = 'fluidinfo.com';
