@@ -1,6 +1,6 @@
 {
   "name": "Fluidinfo",
-  "version": "2.0.1",
+  "version": "2.0.4",
   "description": "Talk about the page you're looking at or the text you have selected in a sidebar.",
   "omnibox": { "keyword" : "fi" },
   "background_page": "background.html",
