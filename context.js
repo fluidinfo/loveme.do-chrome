@@ -58,7 +58,7 @@ function openNewTab(about, info, tab){
      */
     chrome.tabs.create({
         index: tab.index + 1,
-        url: 'http://' + fluidinfoHost + '/about/' + encodeURIComponent(about)
+        url: 'http://' + lovemedoHost + '/about/' + encodeURIComponent(about)
     });
 }
 

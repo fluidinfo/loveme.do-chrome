@@ -1,6 +1,6 @@
 this.manifest = {
     'name': 'Fluidinfo',
-    'icon': '../images/fi-32.png',
+    'icon': '../images/logo-32.png',
     'settings': [
         {
             'tab': i18n.get('help'),
