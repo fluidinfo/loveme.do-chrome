@@ -1,8 +1,8 @@
 {
-  "name": "Fluidinfo",
-  "version": "2.0.9",
+  "name": "Lovemedo",
+  "version": "2.0.14",
   "description": "Talk about the page you're looking at or the text you have selected in a sidebar.",
-  "omnibox": { "keyword" : "fi" },
+  "omnibox": { "keyword" : "lmd" },
   "background_page": "background.html",
   "options_page": "fancy-settings/settings.html",
   "permissions": [
@@ -13,16 +13,16 @@
     "unlimitedStorage"
   ],
   "icons" : {
-    "16" : "images/fi-16.png",
-    "19" : "images/fi-19.png",
-    "32" : "images/fi-32.png",
-    "48" : "images/fi-48.png",
-    "64" : "images/fi-64.png",
-    "128" : "images/fi-128.png"
+    "16" : "images/logo-16.png",
+    "19" : "images/logo-19.png",
+    "32" : "images/logo-32.png",
+    "48" : "images/logo-48.png",
+    "64" : "images/logo-64.png",
+    "128" : "images/logo-128.png"
   },
   "browser_action": {
-    "default_icon": "images/fi-19.png",
-    "default_title": "Fluidinfo"
+    "default_icon": "images/logo-19.png",
+    "default_title": "Lovemedo"
   },
   "content_scripts": [
     {

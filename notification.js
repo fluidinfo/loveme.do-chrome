@@ -12,7 +12,7 @@ var populate = function(options){
      */
     var about = options.about;
     var truncatedAbout = valueUtils.truncateAbout(about, 35);
-    var url = 'http://' + fluidinfoHost + '/about/' + encodeURIComponent(about);
+    var url = 'http://' + lovemedoHost + '/about/' + encodeURIComponent(about);
     
     document.getElementById('fi_url').innerHTML = Mustache.render(
         '<a href="{{url}}" target="_blank">{{truncatedAbout}}</a>.', {

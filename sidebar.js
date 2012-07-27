@@ -25,7 +25,7 @@ var getSidebar = function(){
 };
 
 var updateSidebar = function(sidebar, about){
-    sidebar.src = 'http://' + fluidinfoHost + '/infomaniac/' + encodeURIComponent(about);
+    sidebar.src = 'http://' + lovemedoHost + '/infomaniac/' + encodeURIComponent(about);
     sidebar.onload = function(){
         backgroundPort.postMessage({injectSidebarJS: true});
     };
