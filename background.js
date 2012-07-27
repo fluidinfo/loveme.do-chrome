@@ -179,7 +179,7 @@ chrome.extension.onConnect.addListener(function(port){
                     chrome.tabs.create({
                         index: tab.index + 1,
                         openerTabId: tab.id,
-                        url: 'http://' + fluidinfoHost + '/login/fluidinfo/'
+                        url: 'http://' + lovemedoHost + '/login/fluidinfo/'
                     }, function(createdTab){
                         // Mark the tab as something we want to close automatically.
                         oauthAutoCloseTabs[createdTab.id] = port;
@@ -433,7 +433,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
         if (oauthAutoCloseTabs.hasOwnProperty(tabId)){
             // This tab is a candidate for automatic closing after successful
             // OAuth login.
-            var dashboardURLPrefix = 'http://' + fluidinfoHost;
+            var dashboardURLPrefix = 'http://' + lovemedoHost;
             if (tab.url.slice(0, 39) === 'https://api.twitter.com/oauth/authorize'){
                 // We're in the intermediate state, the fate of the OAuth login
                 // attempt is still unknown. Do nothing.
