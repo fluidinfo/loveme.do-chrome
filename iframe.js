@@ -4,7 +4,7 @@
  * in the main tab code.
  */
 
-var close = document.getElementById('fluidinfo-sidebar-close');
+var close = document.getElementById('lovemedo-sidebar-close');
 
 if (close){
     var port = chrome.extension.connect({

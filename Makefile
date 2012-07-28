@@ -1,9 +1,9 @@
 zip:
-	git archive --prefix=fluidinfo-extension/ -v --format zip HEAD > fluidinfo-extension.zip
+	git archive --prefix=lovemedo-extension/ -v --format zip HEAD > lovemedo-extension.zip
 
 clean:
 	find . -name '*~' | xargs -r rm
-	rm -f fluidinfo-extension.zip
+	rm -f lovemedo-extension.zip
 
 wc:
 	@wc -l \
