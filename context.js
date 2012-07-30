@@ -10,7 +10,7 @@ chrome.contextMenus.create({
 });
 
 chrome.contextMenus.create({
-    'title' : 'This page on fluidinfo.com',
+    'title' : 'This page on loveme.do',
     'type' : 'normal',
     'contexts' : ['page'],
     'onclick' : function(info, tab){
@@ -30,7 +30,7 @@ chrome.contextMenus.create({
 });
 
 chrome.contextMenus.create({
-    'title' : 'This image on fluidinfo.com',
+    'title' : 'This image on loveme.do',
     'type' : 'normal',
     'contexts' : ['image'],
     'onclick' : function(info, tab){
@@ -87,7 +87,7 @@ var addContextMenuItem = function(text, context){
             }
         });
         var gotoMenuItem = chrome.contextMenus.create({
-            'title' : text + ' on fluidinfo.com',
+            'title' : text + ' on loveme.do',
             'type' : 'normal',
             'contexts' : [context],
             'onclick' : function(info, tab){

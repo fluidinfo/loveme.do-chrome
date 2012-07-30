@@ -1,4 +1,4 @@
-.fluidinfo_sidebar {
+.lovemedo-sidebar {
     background-color: white;
     border-width: 0;
     display: none;
@@ -9,13 +9,13 @@
     z-index: 9999999999;
 }
 
-.fluidinfo_sidebar.fluidinfo_sidebar_right {
+.lovemedo-sidebar.lovemedo-sidebar-right {
     border-left: 1px solid #ccc;
     box-shadow: -2px 0px 1px 1px rgba(0, 0, 0, 0.2);
     right: 0;
 }
 
-.fluidinfo_sidebar.fluidinfo_sidebar_left {
+.lovemedo-sidebar.lovemedo-sidebar-left {
     border-right: 1px solid #ccc;
     box-shadow: 2px 0px 1px 1px rgba(0, 0, 0, 0.2);
 }

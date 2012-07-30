@@ -366,13 +366,13 @@ var displayNotification = function(options){
                             var found = false;
                             var info = tabId + '_followees';
                             chrome.extension.getViews({type: 'notification'}).forEach(function(win){
-                                // Populate any new notification window (win._fluidinfo_info undefined)
-                                // or re-populate if win._fluidinfo_info is the current tabId (in which
+                                // Populate any new notification window (win._lovemedo_info undefined)
+                                // or re-populate if win._lovemedo_info is the current tabId (in which
                                 // case we are processing a reload).
                                 if (!found &&
-                                    (win._fluidinfo_info === undefined || win._fluidinfo_info === info)){
+                                    (win._lovemedo_info === undefined || win._lovemedo_info === info)){
                                     if (win.populate){
-                                        win._fluidinfo_info = info;
+                                        win._lovemedo_info = info;
                                         win.populate({
                                             about: about,
                                             knownPrefixes: knownPrefixes,
@@ -439,7 +439,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
                 // attempt is still unknown. Do nothing.
             }
             else if (tab.url.slice(0, dashboardURLPrefix.length) === dashboardURLPrefix){
-                // We're loading a valid Fluidinfo URL, so the OAuth
+                // We're loading a valid loveme.do URL, so the OAuth
                 // approval was granted. Remove the OAuth tab. Tell the tab
                 // that made it to reload its sidebar now that login has
                 // succeeded, and make it the active tab so the user is

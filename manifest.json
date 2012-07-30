@@ -1,7 +1,7 @@
 {
-  "name": "Lovemedo",
-  "version": "2.0.14",
-  "description": "Talk about the page you're looking at or the text you have selected in a sidebar.",
+  "name": "loveme.do",
+  "version": "2.0.22",
+  "description": "Provides a sidebar to comment on the page you're on or the text you've selected.",
   "omnibox": { "keyword" : "lmd" },
   "background_page": "background.html",
   "options_page": "fancy-settings/settings.html",
@@ -22,7 +22,7 @@
   },
   "browser_action": {
     "default_icon": "images/logo-19.png",
-    "default_title": "Lovemedo"
+    "default_title": "loveme.do"
   },
   "content_scripts": [
     {
