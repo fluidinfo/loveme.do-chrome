@@ -36,8 +36,8 @@ this.i18n = {
             'browsing the web. You can easily: ' +
             '</p>' +
             '<ul> ' +
-            '<li>Add info to anything</li> ' +
-            '<li>See info you\'ve added to URLs</li> ' +
+            '<li>Add comments to anything</li> ' +
+            '<li>See comments you and your friends have added to URLs and text selections</li> ' +
             '<li>Jump to <a href="http://loveme.do">loveme.do</a> to look at anything</li> ' +
             '</ul> ' +
             'These are described below.'
@@ -52,9 +52,9 @@ this.i18n = {
     'see description': {
         'en':
             '<p>' +
-            '<img src="extension-count.png" style="float: left; margin-right: 8px;"> ' +
-            'When you navigate to a page you\'ve added to, a popup will appear ' +
-            'to show you your info. '
+            'When you navigate to a page you\'ve commented on, you can see all the comments ' +
+            'in the extension sidebar.' +
+            '</p>'
     },
     'jump description': {
         'en':
@@ -84,7 +84,7 @@ this.i18n = {
     'feedback description': {
         'en': 'We\'d love to hear what you think and to improve the extension based on your suggestions. ' +
               'You can mail us at <a href="mailto:info@fluidinfo.com">info@fluidinfo.com</a> or come hang ' +
-              'out with us in <a href="irc://chat.freenode.net/fluidinfo" target="_blank">the #fluidinfo channel</a> ' +
+              'out with us in the <a href="irc://chat.freenode.net/fluidinfo" target="_blank">#fluidinfo channel</a> ' +
               'on irc.freenode.net.'
     },
     'notification description': {
