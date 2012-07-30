@@ -11,14 +11,14 @@ this.manifest = {
         },
         {
             'tab': i18n.get('help'),
-            'group': i18n.get('Add info'),
+            'group': i18n.get('Add comments'),
             'name': 'adding',
             'type': 'description',
             'text': i18n.get('add description')
         },
         {
             'tab': i18n.get('help'),
-            'group': i18n.get('See info'),
+            'group': i18n.get('See comments'),
             'name': 'see',
             'type': 'description',
             'text': i18n.get('see description')

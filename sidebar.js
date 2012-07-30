@@ -21,7 +21,7 @@ var showSidebar = function(sidebar){
 };
 
 var getSidebar = function(){
-    return document.getElementById('fi_sidebar');
+    return document.getElementById('lovemedo-sidebar-id');
 };
 
 var updateSidebar = function(sidebar, about){
@@ -62,11 +62,11 @@ var createSidebar = function(callback){
             function(result){
                 settings = result;
                 var sidebar = document.createElement('iframe');
-                sidebar.id = 'fi_sidebar';
-                sidebar.classList.add('fluidinfo_sidebar');
-                sidebar.classList.add('fluidinfo_sidebar_' + settings.sidebarSide);
+                sidebar.id = 'lovemedo-sidebar-id';
+                sidebar.classList.add('lovemedo-sidebar');
+                sidebar.classList.add('lovemedo-sidebar-' + settings.sidebarSide);
                 sidebar.setAttribute('width', settings.sidebarWidth + 'px');
-                sidebar.title = 'Fluidinfo sidebar';
+                sidebar.title = 'loveme.do sidebar';
                 parent.appendChild(sidebar);
                 callback(sidebar);
             }
