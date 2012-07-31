@@ -13,10 +13,10 @@ Once logged in, you can click the extension icon to add info to the URL you are 
 
 Note: at the moment you'll need to reload pages you already have open when you install the extension (if you want to use the extension on those pages).  We'll fix that soon.
 
-JUMP
-----
+Seeing things in the sidebar or on loveme.do
+--------------------------------------------
 
-There are several ways to quickly jump to http://loveme.do to look at anything:
+There are several ways to view URLs or text in the sidebar or to quickly jump to http://loveme.do to look at anything:
 
 * Right-click the page background to jump to the current URL.
 * Hover over a link and right-click to jump to the URL of the link or the text in the link.
