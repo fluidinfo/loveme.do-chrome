@@ -1,6 +1,6 @@
 {
   "name": "loveme.do",
-  "version": "2.0.23",
+  "version": "2.0.24",
   "description": "Provides a sidebar to comment on the page you're on or the text you've selected.",
   "omnibox": { "keyword" : "lmd" },
   "background_page": "background.html",
