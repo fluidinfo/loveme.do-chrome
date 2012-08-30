@@ -24,7 +24,7 @@ var settings = new Store('settings', {
     sidebarWidth: 300
 });
 
-var anonFluidinfoAPI = fluidinfo({instance: 'http://' + fluidDBHost + '/'});
+var anonFluidinfoAPI = fluidinfo({instance: 'https://' + fluidDBHost + '/'});
 
 var absoluteHref = function(linkURL, docURL){
     /*
